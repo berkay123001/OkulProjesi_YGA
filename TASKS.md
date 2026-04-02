@@ -49,7 +49,7 @@
 
 ## 📌 Durum Simgeleri
 
-| Simga | Anlam |
+| Simge | Anlam |
 |---|---|
 | ⏳ Beklemede | Henüz başlanmadı |
 | 🔄 Sürüyor | Üzerinde çalışılıyor |
