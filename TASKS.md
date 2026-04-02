@@ -5,7 +5,13 @@
 
 ---
 
-## 📌 Hafta 2 (30.03.2026 – 03.04.2026)
+## 📌 Hafta 1 (24.03.2026 – 30.03.2026) — Proje Tanımı & Planlama
+
+> Hafta 1'de proje konusu belirlendi, ekip rolleri dağıtıldı ve genel planlama yapıldı.
+
+---
+
+## 📌 Hafta 2 (30.03.2026 – 04.04.2026) — Hafta 1'in Devamı
 
 ### Dilan Çiçek (240541044) — Frontend & UI/UX Tasarımı
 
@@ -18,7 +24,7 @@
 **Görev 2: Frontend Teknoloji Araştırması**
 - **Açıklama:** Frontend için kullanılabilecek dilleri/çerçeveleri araştır. Her seçeneğin avantaj ve dezavantajlarını belgele. Seçim yapılmasa bile seçenekler net bir şekilde listelenmeli.
 - **Teslim:** Frontend teknoloji karşılaştırma dokümanı
-- **Tarih:** 09.04.2026 (Perşembe)
+- **Tarih:** 04.04.2026 (Cumartesi)
 - **Durum:** ⏳ Beklemede
 
 ---
