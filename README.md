@@ -23,7 +23,7 @@ Sosyal medya üzerinden yayılan dezenformasyon ve siber dolandırıcılık (phi
 
 ## 📂 Dizin
 
-- **TR DİZİN**
+Bu bölümde proje dizin yapısı (klasörler ve dosyalar) daha sonra güncellenecektir.
 
 ---
 
