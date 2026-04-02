@@ -5,14 +5,14 @@
 
 ---
 
-## 📌 Hafta 2 (02.04.2026 – 09.04.2026)
+## 📌 Hafta 2 (30.03.2026 – 03.04.2026)
 
 ### Dilan Çiçek (240541044) — Frontend & UI/UX Tasarımı
 
 **Görev 1: Arayüz Prototip Araştırması**
 - **Açıklama:** Stitch, Google AI Studio, Blitz AI, Emergent AI gibi no-code prototipleme araçlarını araştırarak arayüz prototipleri oluştur. Özellikle Google AI Studio ve Stitch ile başlanması tavsiye edilir. Net bir karar verilmesine gerek yok; örnekler çıkarılmalı, grup olarak seçim yapılacak.
 - **Teslim:** Görsel arayüz prototipleri (ekran görüntüleri/dosyalar)
-- **Tarih:** 09.04.2026 (Perşembe)
+- **Tarih:** 03.04.2026 (Cuma)
 - **Durum:** ⏳ Beklemede
 
 **Görev 2: Frontend Teknoloji Araştırması**
@@ -35,7 +35,7 @@
   - Bizim projemizin farkı/özgünlüğü ne olacak?
 - **Not:** Benchmark ve veri kalitesi kısmı Hasan'ı doğrudan ilgilendirdiği için Hasan da Ali'ye destek veriyor.
 - **Teslim:** Literatür raporu + makale linkleri + karşılaştırma tablosu
-- **Tarih:** 09.04.2026 (Perşembe)
+- **Tarih:** 03.04.2026 (Cuma)
 - **Durum:** ⏳ Beklemede
 
 ---
@@ -43,7 +43,6 @@
 ### ⚠️ Hatırlatmalar
 
 - Sonuçlar GitHub reposuna push edilecek, ilgili klasörler altında.
-- **10.04.2026 (Cuma)** sunumu için herkes kendi görevini bilmeli ve konuşma pratiği yapmalı.
 
 ---
 
