@@ -52,6 +52,54 @@
 
 ---
 
+## 📌 Hafta 3 (07.04.2026 – 11.04.2026)
+
+### Dilan Çiçek (240541044) & Hasan Zekeriya Şimşek (240542020) — Ortak Görev
+
+**Görev 1: Sohbet Arayüzü Geliştirme (UI + Backend)**
+- **Açıklama:** Hafta 2'de seçilen UI konsept tasarımı üzerinden sohbet ekranı geliştirilecek. Sohbet arayüzünde şu bileşenler aktif hale getirilecek:
+  - Sohbet geçmişi (kaldığı yerden devam edilebilme)
+  - Ayarlar ekranı
+  - Kullanıcının etkileşim kurabileceği tüm arayüz elemanları
+  - **Not:** Genel UI değil, sadece sohbet arayüzü odaklı.
+- **Teslim:** Çalışan sohbet arayüzü prototipi
+- **Tarih:** 11.04.2026 (Cuma)
+- **Durum:** ⏳ Beklemede
+
+**Hasan'ın Alt Görevi: Model Bağlama & Sohbet Hafızası**
+- **Açıklama:** Google AI Studio'dan ücretsiz Gemini API key alınarak sohbet ekranına model bağlanacak. Gereksinimler:
+  - Sohbet geçmişinde kaldığı yerden devam edilebilmeli
+  - Hafıza bozulmamalı
+  - Devam eden sohbette model context/bağlam kaybedilmemeli
+  - Firebase entegrasyonu gerekmez — SQLite veya JSON kullanılabilir
+  - Veritabanı bağlantıları sonraki haftalarda ayrı görev olarak verilecek
+- **Teslim:** Gemini API entegre çalışan sohbet modülü
+- **Tarih:** 11.04.2026 (Cuma)
+- **Durum:** ⏳ Beklemede
+
+---
+
+### Ali Türk (240542016) — Teknik Raporlama & Araştırma
+
+**Görev 1: GitHub Proje Araştırması**
+- **Açıklama:** Literatürde bulunan makalelere karşılık gelen GitHub projelerini araştır. Öncelikli kontrol:
+  1. Önce önceki haftalarda bulunan makalelerin GitHub kodları var mı kontrol et
+  2. Her GitHub projesi makaleleştirilmemiş olabilir, bu yüzden doğrudan GitHub'da da araştırma yap
+  3. Bizim projemize benzer çalışmalar (tamamen aynı olmasa da) tespit et
+  4. Agent yönetimi için kullanılan teknolojileri belgele (LangGraph, AutoGen, CrewAI, vb.)
+  5. İncelenen projelerden ilham alınabilecek/kullanılabilecek teknolojileri belgele (örn: web scraping için X kullanmışlar bizde kullanılabilir, prompt ayarları için Y yaklaşımı var vb.)
+- **Teslim:** GitHub proje raporu + linkler + kullanılabilir teknoloji önerileri
+- **Tarih:** 11.04.2026 (Cuma)
+- **Durum:** ⏳ Beklemede
+
+---
+
+### ⚠️ Hatırlatmalar
+
+- Sonuçlar GitHub reposuna push edilecek, ilgili klasörler altında.
+
+---
+
 ## 📌 Durum Simgeleri
 
 | Simge | Anlam |
