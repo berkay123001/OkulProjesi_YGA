@@ -19,13 +19,13 @@
 - **Açıklama:** Stitch, Google AI Studio, Blitz AI, Emergent AI gibi no-code prototipleme araçlarını araştırarak arayüz prototipleri oluştur. Özellikle Google AI Studio ve Stitch ile başlanması tavsiye edilir. Net bir karar verilmesine gerek yok; örnekler çıkarılmalı, grup olarak seçim yapılacak.
 - **Teslim:** Görsel arayüz prototipleri (ekran görüntüleri/dosyalar)
 - **Tarih:** 03.04.2026 (Cuma)
-- **Durum:** ⏳ Beklemede
+- **Durum:** ❌ Yapılmadı
 
 **Görev 2: Frontend Teknoloji Araştırması**
 - **Açıklama:** Frontend için kullanılabilecek dilleri/çerçeveleri araştır. Her seçeneğin avantaj ve dezavantajlarını belgele. Seçim yapılmasa bile seçenekler net bir şekilde listelenmeli.
 - **Teslim:** Frontend teknoloji karşılaştırma dokümanı
 - **Tarih:** 04.04.2026 (Cumartesi)
-- **Durum:** ⏳ Beklemede
+- **Durum:** ❌ Yapılmadı
 
 ---
 
@@ -42,7 +42,9 @@
 - **Not:** Benchmark ve veri kalitesi kısmı Hasan'ı doğrudan ilgilendirdiği için Hasan da Ali'ye destek veriyor.
 - **Teslim:** Literatür raporu + makale linkleri + karşılaştırma tablosu
 - **Tarih:** 03.04.2026 (Cuma)
-- **Durum:** ⏳ Beklemede
+- **Durum:** ✅ Kısmen Tamamlandı
+
+> **📝 Not:** Ali literatür taramasını teslim etti (bkz. `docs/hafta2/Literatür Taraması.md`). Eksikler: Karşılaştırma tablosu, benchmark yeterlilik analizi. Hasan: ❌ Yapılmadı. Takım çalışması beklenen seviyede gerçekleştirilememiştir.
 
 ---
 
