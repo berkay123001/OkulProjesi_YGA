@@ -19,7 +19,9 @@
 - **Açıklama:** Stitch, Google AI Studio, Blitz AI, Emergent AI gibi no-code prototipleme araçlarını araştırarak arayüz prototipleri oluştur. Özellikle Google AI Studio ve Stitch ile başlanması tavsiye edilir. Net bir karar verilmesine gerek yok; örnekler çıkarılmalı, grup olarak seçim yapılacak.
 - **Teslim:** Görsel arayüz prototipleri (ekran görüntüleri/dosyalar)
 - **Tarih:** 03.04.2026 (Cuma)
-- **Durum:** ❌ Yapılmadı
+- **Durum:** ⚠️ Geç Tamamlandı / Revize Bekleniyor
+
+> **📝 Not:** PR #12 ile teslim edildi. Teslim tarihi aşıldığı için geç tamamlandı sayıldı. PR #13 üzerinden revize istenmiştir.
 
 **Görev 2: Frontend Teknoloji Araştırması**
 - **Açıklama:** Frontend için kullanılabilecek dilleri/çerçeveleri araştır. Her seçeneğin avantaj ve dezavantajlarını belgele. Seçim yapılmasa bile seçenekler net bir şekilde listelenmeli.
