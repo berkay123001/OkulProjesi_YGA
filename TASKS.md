@@ -104,6 +104,87 @@
 
 ---
 
+## 📌 Hafta 4 (11.04.2026 – 18.04.2026) — Sınav Haftası
+
+> Sınav haftası nedeniyle yeni görev verilmemiştir.
+
+---
+
+## 📌 Hafta 5 (18.04.2026 – 25.04.2026)
+
+> **Rol Değişiklikleri:** Hasan → UI/Tasarım, Ali → Backend, Dilan → Hasan'a Destek
+
+### Hasan Zekeriya Şimşek — UI/Tasarım
+
+**Görev 1 (Gecikmiş — Eski Hafta Görevi): PR #13 Düzeltmeleri**
+- **Açıklama:** PR #13'teki düzeltmeleri Dilan ile birlikte tamamla. API key güvenliği, AI Studio yorumu, import path'ler, OSINT katmanı içeriği, hardcoded kullanıcı adı.
+- **Tarih:** Pazar 27.04.2026 23:59 (son uzatma)
+- **Durum:** ⏳ Beklemede
+
+**Görev 2: Frontend Tasarımını Makaleye Uygun Güncelle**
+- **Açıklama:** Drive'daki taslak makale PDF'ini referans alarak frontend tasarımını güncelle. Özellikle:
+  - OSINT katmanı: Kripto tablosu yerine makaledeki araç envanteri (Tablo II), 4 katmanlı arama zinciri ve güven skorları (verified/high/medium/low) gösterilmeli
+  - Agent sohbet: Küçük yan panel yerine ayrı tam sayfa — Supervisor → Alt-ajan görev devri, Planla-İncele-Sentezle boru hattı adımları timeline olarak gösterilmeli
+  - Neo4j graf görselleştirmesi için bir panel/sekme (makalede D3.js tabanlı)
+- **Tarih:** Cuma 01.05.2026 23:59
+- **Durum:** ⏳ Beklemede
+
+**Görev 3: Sidebar Navigasyonu ve Sistem Mimarisi (Dilan ile Ortak)**
+- **Açıklama:** Dilan ile birlikte analiz edip tamamlayın — Makaledeki sistem mimarisine (Figure 1) uygun sidebar navigasyonu: Kimlik, Medya, Akademik alt-ajan görünümleri + Graf paneli + Telemetri paneli.
+- **Tarih:** Cuma 01.05.2026 23:59
+- **Durum:** ⏳ Beklemede
+
+**⚠️ Takım Çalışması Şartı:** Ali Türk ve Dilan Çiçek ile aktif iletişim ve iş birliği bekleniyor. GitHub commit geçmişi ve PR yorumları üzerinden takım çalışması kanıtı zorunludur. İletişim ve takım çalışması yoksa görevler geçersiz sayılacaktır.
+
+---
+
+### Ali Türk — Backend
+
+**Görev 1: Backend Proxy Kurulumu**
+- **Açıklama:** TypeScript tabanlı basit bir backend proxy kur (Express veya benzeri). Gemini API key backend'de kalsın, frontend bu endpoint'e istek atsın. Projenin mevcut kodu çoğunlukla TypeScript tabanlı, bu yüzden Python yerine TS kullanılması gerekiyor — gereksiz komplekslik yaratmamak adına.
+- **Teslim:** Çalışan backend proxy + endpoint dokümantasyonu
+- **Tarih:** Çarşamba 29.04.2026 23:59
+- **Durum:** ⏳ Beklemede
+
+**Görev 2: JSON Tabanlı Sohbet Geçmişi Endpoint'i**
+- **Açıklama:** Sohbet geçmişi için JSON tabanlı okuma/yazma endpoint'i yaz. Yeni mesaj JSON'a kaydedilsin, sayfa yenilendiğinde geri yüklensin.
+- **Teslim:** Çalışan JSON okuma/yazma modülü
+- **Tarih:** Çarşamba 29.04.2026 23:59
+- **Durum:** ⏳ Beklemede
+
+**⚠️ Neden erken:** Backend proxy hazır olmadan Hasan ve Dilan frontend entegrasyonunu yapamaz. Senin backend'in hazır olması onların çalışmasını doğrudan etkiliyor. Bu yüzden çarşamba teslim edilmesi zorunlu — yoksa Hasan ve Dilan'ın süresi de uzar, proje aksar.
+
+**⚠️ Takım Çalışması Şartı:** Hasan ile aktif iletişim ve iş birliği bekleniyor (backend-frontend entegrasyonu). Hasan ve Dilan backend konusunda deneyimli değil, entegrasyonu senin yönlendirmenle yapmak zorundalar. İletişim ve takım çalışması yoksa görevler geçersiz sayılacaktır.
+
+---
+
+### Dilan Çiçek — Hasan'a Destek
+
+**Görev 1 (Gecikmiş — Eski Hafta Görevi): PR #13 Düzeltmeleri**
+- **Açıklama:** PR #13'teki düzeltmeleri Hasan ile birlikte tamamla.
+- **Tarih:** Pazar 27.04.2026 23:59 (son uzatma)
+- **Durum:** ⏳ Beklemede
+
+**Görev 2: Hasan'a Frontend Destek**
+- **Açıklama:** Hasan'a frontend tasarımında destek ol — özellikle hardcoded kullanıcı adı düzeltmesi ve görsel düzenlemeler.
+- **Tarih:** Cuma 01.05.2026 23:59
+- **Durum:** ⏳ Beklemede
+
+**Görev 3: Sidebar Navigasyonu ve Sistem Mimarisi (Hasan ile Ortak)**
+- **Açıklama:** Hasan ile birlikte analiz edip tamamlayın — sidebar navigasyonu ve sistem mimarisine uygun arayüz tasarımı.
+- **Tarih:** Cuma 01.05.2026 23:59
+- **Durum:** ⏳ Beklemede
+
+**⚠️ Takım Çalışması Şartı:** Hasan ile aktif iletişim ve iş birliği bekleniyor. İletişim ve takım çalışması yoksa görevler geçersiz sayılacaktır.
+
+---
+
+### ⚠️ Hatırlatmalar
+
+- Sonuçlar GitHub reposuna push edilecek, ilgili klasörler altında.
+
+---
+
 ## 📌 Durum Simgeleri
 
 | Simge | Anlam |
