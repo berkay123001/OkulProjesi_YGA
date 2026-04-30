@@ -1,4 +1,4 @@
-export type ViewType = 'summary' | 'detail' | 'osint';
+export type ViewType = 'summary' | 'detail' | 'osint' | 'graph' | 'agent_chat';
 
 export interface AnalysisResult {
   id: string;
@@ -7,6 +7,13 @@ export interface AnalysisResult {
   label: string;
   description: string;
   timestamp: string;
+}
+
+export interface PipelineStep {
+  id: string;
+  label: string;
+  status: 'pending' | 'active' | 'completed' | 'error';
+  agent?: string;
 }
 
 export interface Message {
@@ -19,6 +26,7 @@ export interface Message {
   agentIcon?: string;
   status?: string;
   statusType?: 'info' | 'success' | 'warning' | 'error';
+  pipeline?: PipelineStep[];
 }
 
 export interface ChatSession {

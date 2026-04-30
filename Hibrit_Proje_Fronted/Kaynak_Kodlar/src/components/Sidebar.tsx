@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  ShieldCheck, 
-  Search, 
-  Archive, 
-  BarChart3, 
-  Settings, 
+import {
+  ShieldCheck,
+  Search,
+  Archive,
+  BarChart3,
+  Settings,
   LogOut,
   ChevronRight,
   Plus,
@@ -83,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ view }) => {
                 {isDarkMode ? 'Karanlık' : 'Aydınlık'}
               </span>
             </div>
-            <button 
+            <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               className="w-8 h-4 bg-gray-200 rounded-full relative transition-colors"
             >
@@ -107,7 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ view }) => {
           <LogOut className="w-4 h-4 shrink-0" />
           <span className={styles.label}>Çıkış Yap</span>
         </button>
-        
+
         <div className="pt-4 text-center">
           <span className="text-[9px] text-gray-400 font-mono opacity-60">v2.4.1 Stable | Build: 2026</span>
         </div>

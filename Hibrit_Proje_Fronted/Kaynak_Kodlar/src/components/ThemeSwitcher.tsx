@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, ZoomIn, Database, LucideIcon } from 'lucide-react';
+import { LayoutDashboard, ZoomIn, Database, Share2, MessageSquare, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ViewType } from '@/types';
 
@@ -13,6 +13,8 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ currentView, onVie
     { id: 'summary', icon: LayoutDashboard, label: 'GENEL GÖRÜNÜM' },
     { id: 'detail', icon: ZoomIn, label: 'DERİN ANALİZ' },
     { id: 'osint', icon: Database, label: 'OSINT KATMANI' },
+    { id: 'graph', icon: Share2, label: 'NEO4J GRAF' },
+    { id: 'agent_chat', icon: MessageSquare, label: 'AJAN SOHBET' },
   ];
 
   return (

@@ -24,7 +24,12 @@ import {
   History as HistoryIcon,
   ExternalLink,
   Download,
-  Info
+  Info,
+  Database,
+  Layers,
+  ShieldCheck,
+  Server,
+  Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ViewType } from '@/types';
@@ -43,12 +48,30 @@ const areaData = [
   { name: '23:59', value: 700 },
 ];
 
-const osintData = [
-  { id: 1, source: '@fake_haber_agi', type: 'Bot Ağ Tespiti', platform: 'X', risk: 'Kritik', status: 'Dezenformasyon Kampanyası' },
-  { id: 2, source: 't.me/anonim_kanal', type: 'Görsel Tarama', platform: 'Telegram', risk: 'Yüksek', status: 'Manipüle Edilmiş Görsel' },
-  { id: 3, source: 'dogrulukpayi.com', type: 'Kaynak Kontrolü', platform: 'Web', risk: 'Düşük', status: 'Güvenilir Kaynak' },
-  { id: 4, source: 'viral_video_77', type: 'Deepfake Analizi', platform: 'Instagram', risk: 'Orta', status: 'Şüpheli İçerik' },
-  { id: 5, source: 'Bilinmeyen Blog', type: 'Metin Analizi', platform: 'Web', risk: 'Yüksek', status: 'Yanıltıcı Bağlam' },
+const toolInventory = [
+  { category: 'Kimlik', agent: 'IdentityAgent', count: 10, tools: 'run_sherlock, run_maigret, run_github_osint, check_email_registrations, check_breaches, search_person, verify_profiles' },
+  { category: 'Medya', agent: 'MediaAgent', count: 5, tools: 'extract_metadata, reverse_image_search, compare_images_phash, fact_check_to_graph, auto_visual_intel' },
+  { category: 'Akademik', agent: 'AcademicAgent', count: 3, tools: 'search_academic_papers, search_researcher_papers, check_plagiarism' },
+  { category: 'Graf', agent: 'Supervisor', count: 7, tools: 'query_graph, list_graph_nodes, graph_stats, mark_false_positive, remove_false_positive, unexplored_pivots' },
+  { category: 'Arama', agent: 'Paylaşımlı', count: 4, tools: 'search_web, search_web_multi, web_fetch, scrape_profile' },
+  { category: 'Rapor', agent: 'Supervisor', count: 3, tools: 'generate_report, verify_claim, search_person' },
+  { category: 'Obsidian', agent: 'Supervisor', count: 7, tools: 'obsidian_write, obsidian_append, obsidian_read, obsidian_daily, obsidian_list, obsidian_search, obsidian_write_profile' },
+  { category: 'Güvenlik', agent: 'Supervisor', count: 6, tools: 'save_finding, batch_save_findings, save_ioc, link_entities, add_custom_node, add_custom_relationship' },
+  { category: 'Analiz', agent: 'Paylaşımlı', count: 4, tools: 'cross_reference, parse_gpg_key, wayback_search, analyze_gpx' }
+];
+
+const confidenceScores = [
+  { level: 'verified', color: 'bg-green-50 text-green-600 border-green-200', examples: 'GitHub API, GPG anahtarı, Doğrulanmış e-posta' },
+  { level: 'high', color: 'bg-blue-50 text-blue-600 border-blue-200', examples: 'Commit e-postası, Holehe, HIBP kayıtları' },
+  { level: 'medium', color: 'bg-orange-50 text-orange-600 border-orange-200', examples: 'Sherlock, Wayback, EXIF metadata, Platform tarama' },
+  { level: 'low', color: 'bg-red-50 text-red-600 border-red-200', examples: 'Bilinmeyen kaynak, Kullanıcı tarafından eklenen' }
+];
+
+const searchLayers = [
+  { level: 'Katman 1', name: 'SearXNG', type: 'Birincil', desc: '100+ arama motoru, API kota sınırı yok' },
+  { level: 'Katman 2', name: 'Brave Search', type: 'İkincil', desc: 'Bağımsız web indeksi, Otomatik kısıtlama' },
+  { level: 'Katman 3', name: 'Google CSE', type: 'Üçüncül', desc: 'Büyük indeks, hedeflenmiş site: araması' },
+  { level: 'Katman 4', name: 'Tavily', type: 'Son Çare', desc: 'AI optimize edilmiş arama, İçerik özetleme' }
 ];
 
 export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ view }) => {
@@ -148,44 +171,93 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ view }) => {
           </div>
         </div>
 
-        <div className="flex-1 flex overflow-hidden min-h-0">
-          {/* Expanded Table Area */}
-          <div className={cn("flex-1 rounded-xl overflow-hidden flex flex-col", styles.card)}>
-            <div className="p-4 bg-gray-50 border-b border-gray-100 grid grid-cols-6 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-              <span>İçerik Kaynağı</span>
-              <span>Analiz Tipi</span>
-              <span>Zaman Damgası</span>
-              <span>Platform</span>
-              <span>Risk Skoru</span>
-              <span>Tespit Durumu</span>
+        <div className="flex-1 flex gap-5 overflow-hidden min-h-0">
+          {/* Sol Panel: Araç Envanteri Tablosu */}
+          <div className={cn("flex-[2] rounded-xl overflow-hidden flex flex-col", styles.card)}>
+            <div className="p-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4 text-blue-600" />
+                <span className="text-xs font-bold uppercase tracking-widest text-gray-700">Tablo II: Araç Envanteri ve Ajan Dağılımı</span>
+              </div>
+              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">Toplam 47 Araç</span>
             </div>
             <div className="flex-1 overflow-y-auto custom-scrollbar">
-              {osintData.map((row) => (
-                <div key={row.id} className="p-4 border-b border-gray-50 grid grid-cols-6 text-xs items-center hover:bg-blue-50/30 transition-colors group">
-                  <span className="font-mono text-blue-600 font-medium truncate pr-2" title={row.source}>{row.source}</span>
-                  <span className="font-medium text-gray-700">{row.type}</span>
-                  <span className="text-gray-500">07.04.2026 20:00</span>
-                  <span className="flex items-center gap-2 text-gray-600">
-                    <Globe className="w-4 h-4 opacity-50" />
-                    {row.platform}
-                  </span>
-                  <span>
-                    <span className={cn(
-                      "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                      row.risk === 'Kritik' ? "bg-red-50 text-red-600 border border-red-100" :
-                      row.risk === 'Yüksek' ? "bg-orange-50 text-orange-600 border border-orange-100" :
-                      row.risk === 'Orta' ? "bg-gray-50 text-gray-600 border border-gray-200" :
-                      "bg-green-50 text-green-600 border border-green-100"
-                    )}>
-                      {row.risk}
-                    </span>
-                  </span>
-                  <span className={cn(
-                    "font-medium truncate text-[11px]",
-                    row.status === 'Güvenilir Kaynak' ? "text-green-600" : "text-gray-600"
-                  )} title={row.status}>{row.status}</span>
-                </div>
-              ))}
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-white border-b border-gray-100 sticky top-0 z-10">
+                  <tr className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <th className="p-4 font-medium w-1/6">Kategori</th>
+                    <th className="p-4 font-medium w-1/6">Sorumlu Ajan</th>
+                    <th className="p-4 font-medium w-[10%] text-center">Adet</th>
+                    <th className="p-4 font-medium w-auto">Araç Örnekleri</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {toolInventory.map((item, idx) => (
+                    <tr key={idx} className="hover:bg-blue-50/30 transition-colors group text-xs">
+                      <td className="p-4 font-bold text-gray-700">{item.category}</td>
+                      <td className="p-4 font-medium text-blue-600">{item.agent}</td>
+                      <td className="p-4 font-medium text-gray-500 text-center">
+                        <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold">
+                          {item.count}
+                        </div>
+                      </td>
+                      <td className="p-4 font-mono text-[10px] text-gray-500 leading-relaxed group-hover:text-gray-800 transition-colors">
+                        {item.tools}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Sağ Panel: 4 Katmanlı Arama ve Güven Skorları */}
+          <div className="flex-[1] flex flex-col gap-5 overflow-hidden">
+            {/* Güven Skorları */}
+            <div className={cn("flex-1 rounded-xl overflow-hidden flex flex-col", styles.card)}>
+               <div className="p-4 bg-gray-50 border-b border-gray-100 flex items-center gap-2 shrink-0">
+                <ShieldCheck className="w-4 h-4 text-blue-600" />
+                <span className="text-xs font-bold uppercase tracking-widest text-gray-700">Tablo III: Güven Skorları</span>
+              </div>
+              <div className="p-4 flex flex-col gap-3 overflow-y-auto custom-scrollbar">
+                {confidenceScores.map((score, idx) => (
+                  <div key={idx} className="flex flex-col gap-2 p-3 rounded-xl border border-gray-100 hover:border-blue-100 transition-colors bg-white">
+                    <div className="flex items-center justify-between">
+                      <span className={cn("px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border", score.color)}>
+                        {score.level}
+                      </span>
+                    </div>
+                    <p className="text-[11px] font-medium text-gray-600 leading-relaxed">
+                      {score.examples}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Arama Zinciri */}
+            <div className={cn("flex-1 rounded-xl overflow-hidden flex flex-col", styles.card)}>
+              <div className="p-4 bg-gray-50 border-b border-gray-100 flex items-center gap-2 shrink-0">
+                <Layers className="w-4 h-4 text-blue-600" />
+                <span className="text-xs font-bold uppercase tracking-widest text-gray-700">4 Katmanlı Arama Zinciri</span>
+              </div>
+              <div className="p-4 flex flex-col gap-0 overflow-y-auto custom-scrollbar relative">
+                <div className="absolute left-[27px] top-6 bottom-6 w-px bg-blue-100"></div>
+                {searchLayers.map((layer, idx) => (
+                  <div key={idx} className="flex items-start gap-4 relative z-10 group pt-2 pb-2">
+                    <div className="w-6 h-6 rounded-full bg-white border-2 border-blue-600 flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform">
+                      <span className="text-[10px] font-bold text-blue-600">{idx + 1}</span>
+                    </div>
+                    <div className="flex-1 bg-white p-2.5 rounded-lg border border-gray-100 shadow-sm group-hover:border-blue-200 transition-colors">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-bold text-gray-800">{layer.name}</span>
+                        <span className="text-[9px] font-bold uppercase text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{layer.type}</span>
+                      </div>
+                      <p className="text-[10px] text-gray-500 font-medium leading-tight">{layer.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
