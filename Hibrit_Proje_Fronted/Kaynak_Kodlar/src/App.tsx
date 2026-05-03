@@ -64,7 +64,7 @@ export default function App() {
         {
           id: '1',
           role: 'assistant',
-          content: 'Merhaba, ben Siber Güvenlik Analiz Asistanı. Size nasıl yardımcı olabilirim?',
+          content: 'Merhaba, ben Haber Doğrulama Asistanı. Size nasıl yardımcı olabilirim?',
           timestamp: new Date().toLocaleTimeString(),
         }
       ],

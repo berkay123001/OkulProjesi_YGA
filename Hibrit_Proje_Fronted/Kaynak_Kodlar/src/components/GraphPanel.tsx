@@ -21,68 +21,68 @@ interface GraphEdge {
 
 // ─── Mock Veri (Makale Tablo III ve Şekil 1'e göre) ─────────────────────────
 const MOCK_NODES: GraphNode[] = [
-  { id: 'p1',  label: 'berkay.hasret',   type: 'Person',   confidence: 'verified' },
-  { id: 'u1',  label: '@bhasret_dev',    type: 'Username',  confidence: 'high'    },
-  { id: 'u2',  label: '@bhasret',        type: 'Username',  confidence: 'medium'  },
-  { id: 'e1',  label: 'b.hasret@firat.edu.tr', type: 'Email', confidence: 'verified' },
-  { id: 'e2',  label: 'bhasret@gmail.com',     type: 'Email', confidence: 'high'  },
-  { id: 'pf1', label: 'GitHub/bhasret',  type: 'Profile',   confidence: 'verified' },
-  { id: 'pf2', label: 'LinkedIn',        type: 'Profile',   confidence: 'medium'  },
-  { id: 'pl1', label: 'Twitter/X',       type: 'Platform',  confidence: 'high'    },
-  { id: 'pl2', label: 'GitHub',          type: 'Platform',  confidence: 'verified' },
-  { id: 'l1',  label: 'Elazığ, TR',      type: 'Location',  confidence: 'medium'  },
-  { id: 'o1',  label: 'Fırat Üniversitesi', type: 'Organization', confidence: 'verified' },
-  { id: 'pa1', label: 'OSINT Paper 2025', type: 'Paper',   confidence: 'high'    },
-  { id: 'b1',  label: 'HaveIBeenPwned',  type: 'Breach',    confidence: 'high'    },
-  { id: 'src1', label: 'GitHub API',     type: 'Source',    confidence: 'verified' },
-  { id: 'src2', label: 'Sherlock',       type: 'Source',    confidence: 'medium'  },
-  { id: 'src3', label: 'Holehe',         type: 'Source',    confidence: 'high'    },
+  { id: 'p1', label: 'berkay.hasret', type: 'Person', confidence: 'verified' },
+  { id: 'u1', label: '@bhasret_dev', type: 'Username', confidence: 'high' },
+  { id: 'u2', label: '@bhasret', type: 'Username', confidence: 'medium' },
+  { id: 'e1', label: 'b.hasret@firat.edu.tr', type: 'Email', confidence: 'verified' },
+  { id: 'e2', label: 'bhasret@gmail.com', type: 'Email', confidence: 'high' },
+  { id: 'pf1', label: 'GitHub/bhasret', type: 'Profile', confidence: 'verified' },
+  { id: 'pf2', label: 'LinkedIn', type: 'Profile', confidence: 'medium' },
+  { id: 'pl1', label: 'Twitter/X', type: 'Platform', confidence: 'high' },
+  { id: 'pl2', label: 'GitHub', type: 'Platform', confidence: 'verified' },
+  { id: 'l1', label: 'Elazığ, TR', type: 'Location', confidence: 'medium' },
+  { id: 'o1', label: 'Fırat Üniversitesi', type: 'Organization', confidence: 'verified' },
+  { id: 'pa1', label: 'OSINT Paper 2025', type: 'Paper', confidence: 'high' },
+  { id: 'b1', label: 'HaveIBeenPwned', type: 'Breach', confidence: 'high' },
+  { id: 'src1', label: 'GitHub API', type: 'Source', confidence: 'verified' },
+  { id: 'src2', label: 'Sherlock', type: 'Source', confidence: 'medium' },
+  { id: 'src3', label: 'Holehe', type: 'Source', confidence: 'high' },
 ];
 
 const MOCK_EDGES: GraphEdge[] = [
-  { source: 'p1',  target: 'u1',  relation: 'HAS_USERNAME',  confidence: 'verified', tool: 'sherlock'       },
-  { source: 'p1',  target: 'u2',  relation: 'HAS_USERNAME',  confidence: 'medium',   tool: 'maigret'        },
-  { source: 'p1',  target: 'e1',  relation: 'USES_EMAIL',    confidence: 'verified', tool: 'github_api'     },
-  { source: 'p1',  target: 'e2',  relation: 'USES_EMAIL',    confidence: 'high',     tool: 'holehe'         },
-  { source: 'p1',  target: 'o1',  relation: 'WORKS_AT',      confidence: 'verified', tool: 'github_api'     },
-  { source: 'p1',  target: 'l1',  relation: 'LOCATED_IN',    confidence: 'medium',   tool: 'search_web'     },
-  { source: 'u1',  target: 'pf1', relation: 'HAS_PROFILE',   confidence: 'verified', tool: 'github_api'     },
-  { source: 'u2',  target: 'pl1', relation: 'ON_PLATFORM',   confidence: 'medium',   tool: 'sherlock'       },
-  { source: 'pf1', target: 'pl2', relation: 'ON_PLATFORM',   confidence: 'verified', tool: 'github_api'     },
-  { source: 'pf2', target: 'pl2', relation: 'ON_PLATFORM',   confidence: 'medium',   tool: 'maigret'        },
-  { source: 'e2',  target: 'b1',  relation: 'LEAKED_IN',     confidence: 'high',     tool: 'hibp'           },
-  { source: 'p1',  target: 'pa1', relation: 'AUTHORED_BY',   confidence: 'high',     tool: 'academic_agent' },
-  { source: 'src1', target: 'e1', relation: 'ANALYZED',      confidence: 'verified', tool: 'github_api'     },
-  { source: 'src2', target: 'u1', relation: 'ANALYZED',      confidence: 'medium',   tool: 'sherlock'       },
-  { source: 'src3', target: 'e2', relation: 'ANALYZED',      confidence: 'high',     tool: 'holehe'         },
+  { source: 'p1', target: 'u1', relation: 'HAS_USERNAME', confidence: 'verified', tool: 'sherlock' },
+  { source: 'p1', target: 'u2', relation: 'HAS_USERNAME', confidence: 'medium', tool: 'maigret' },
+  { source: 'p1', target: 'e1', relation: 'USES_EMAIL', confidence: 'verified', tool: 'github_api' },
+  { source: 'p1', target: 'e2', relation: 'USES_EMAIL', confidence: 'high', tool: 'holehe' },
+  { source: 'p1', target: 'o1', relation: 'WORKS_AT', confidence: 'verified', tool: 'github_api' },
+  { source: 'p1', target: 'l1', relation: 'LOCATED_IN', confidence: 'medium', tool: 'search_web' },
+  { source: 'u1', target: 'pf1', relation: 'HAS_PROFILE', confidence: 'verified', tool: 'github_api' },
+  { source: 'u2', target: 'pl1', relation: 'ON_PLATFORM', confidence: 'medium', tool: 'sherlock' },
+  { source: 'pf1', target: 'pl2', relation: 'ON_PLATFORM', confidence: 'verified', tool: 'github_api' },
+  { source: 'pf2', target: 'pl2', relation: 'ON_PLATFORM', confidence: 'medium', tool: 'maigret' },
+  { source: 'e2', target: 'b1', relation: 'LEAKED_IN', confidence: 'high', tool: 'hibp' },
+  { source: 'p1', target: 'pa1', relation: 'AUTHORED_BY', confidence: 'high', tool: 'academic_agent' },
+  { source: 'src1', target: 'e1', relation: 'ANALYZED', confidence: 'verified', tool: 'github_api' },
+  { source: 'src2', target: 'u1', relation: 'ANALYZED', confidence: 'medium', tool: 'sherlock' },
+  { source: 'src3', target: 'e2', relation: 'ANALYZED', confidence: 'high', tool: 'holehe' },
 ];
 
 // ─── Renk Paleti ──────────────────────────────────────────────────────────────
 const NODE_COLORS: Record<string, string> = {
-  Person:       '#2563EB',
-  Username:     '#7C3AED',
-  Email:        '#0891B2',
-  Profile:      '#059669',
-  Platform:     '#D97706',
-  Location:     '#DC2626',
+  Person: '#2563EB',
+  Username: '#7C3AED',
+  Email: '#0891B2',
+  Profile: '#059669',
+  Platform: '#D97706',
+  Location: '#DC2626',
   Organization: '#1D4ED8',
-  Paper:        '#9333EA',
-  Breach:       '#B91C1C',
-  Source:       '#374151',
+  Paper: '#9333EA',
+  Breach: '#B91C1C',
+  Source: '#374151',
 };
 
 const CONFIDENCE_COLORS: Record<string, string> = {
   verified: '#16A34A',
-  high:     '#2563EB',
-  medium:   '#D97706',
-  low:      '#DC2626',
+  high: '#2563EB',
+  medium: '#D97706',
+  low: '#DC2626',
 };
 
 const CONFIDENCE_DASH: Record<string, string> = {
   verified: 'none',
-  high:     'none',
-  medium:   '5,4',
-  low:      '2,4',
+  high: 'none',
+  medium: '5,4',
+  low: '2,4',
 };
 
 // ─── Bileşen ──────────────────────────────────────────────────────────────────
@@ -101,7 +101,7 @@ export const GraphPanel: React.FC = () => {
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
 
-    const width  = svgRef.current.clientWidth  || 900;
+    const width = svgRef.current.clientWidth || 900;
     const height = svgRef.current.clientHeight || 600;
 
     // ─── Filtre ───────────────────────────────────────────────
@@ -128,15 +128,15 @@ export const GraphPanel: React.FC = () => {
     const defs = svg.append('defs');
     (['verified', 'high', 'medium', 'low'] as const).forEach(conf => {
       defs.append('marker')
-        .attr('id',          `arrow-${conf}`)
-        .attr('viewBox',     '0 -5 10 10')
-        .attr('refX',        22)
-        .attr('refY',        0)
+        .attr('id', `arrow-${conf}`)
+        .attr('viewBox', '0 -5 10 10')
+        .attr('refX', 22)
+        .attr('refY', 0)
         .attr('markerWidth', 6)
-        .attr('markerHeight',6)
-        .attr('orient',      'auto')
+        .attr('markerHeight', 6)
+        .attr('orient', 'auto')
         .append('path')
-        .attr('d',    'M0,-5L10,0L0,5')
+        .attr('d', 'M0,-5L10,0L0,5')
         .attr('fill', CONFIDENCE_COLORS[conf]);
     });
 
@@ -146,8 +146,8 @@ export const GraphPanel: React.FC = () => {
         .id(d => d.id)
         .distance(100)
       )
-      .force('charge',  d3.forceManyBody().strength(-300))
-      .force('center',  d3.forceCenter(width / 2, height / 2))
+      .force('charge', d3.forceManyBody().strength(-300))
+      .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collide', d3.forceCollide(38));
 
     // ─── Kenarlar ─────────────────────────────────────────────
@@ -156,11 +156,11 @@ export const GraphPanel: React.FC = () => {
       .data(filteredEdges)
       .enter()
       .append('line')
-      .attr('stroke',           d => CONFIDENCE_COLORS[d.confidence])
-      .attr('stroke-opacity',   0.7)
-      .attr('stroke-width',     1.5)
+      .attr('stroke', d => CONFIDENCE_COLORS[d.confidence])
+      .attr('stroke-opacity', 0.7)
+      .attr('stroke-width', 1.5)
       .attr('stroke-dasharray', d => CONFIDENCE_DASH[d.confidence])
-      .attr('marker-end',       d => `url(#arrow-${d.confidence})`);
+      .attr('marker-end', d => `url(#arrow-${d.confidence})`);
 
     // Kenar etiketleri
     const linkLabel = g.append('g')
@@ -168,9 +168,9 @@ export const GraphPanel: React.FC = () => {
       .data(filteredEdges)
       .enter()
       .append('text')
-      .attr('font-size',  8)
-      .attr('fill',       '#9CA3AF')
-      .attr('text-anchor','middle')
+      .attr('font-size', 8)
+      .attr('fill', '#9CA3AF')
+      .attr('text-anchor', 'middle')
       .text(d => d.relation);
 
     // ─── Düğümler ─────────────────────────────────────────────
@@ -196,35 +196,35 @@ export const GraphPanel: React.FC = () => {
 
     // Çember arka plan (glow)
     node.append('circle')
-      .attr('r',    20)
+      .attr('r', 20)
       .attr('fill', d => (NODE_COLORS[d.type] || '#6B7280') + '22')
-      .attr('stroke',       d => NODE_COLORS[d.type] || '#6B7280')
+      .attr('stroke', d => NODE_COLORS[d.type] || '#6B7280')
       .attr('stroke-width', 1.5);
 
     // Güven skoru halkası
     node.append('circle')
-      .attr('r',            23)
-      .attr('fill',         'none')
-      .attr('stroke',       d => CONFIDENCE_COLORS[d.confidence ?? 'low'])
+      .attr('r', 23)
+      .attr('fill', 'none')
+      .attr('stroke', d => CONFIDENCE_COLORS[d.confidence ?? 'low'])
       .attr('stroke-width', 2.5)
       .attr('stroke-dasharray', d => CONFIDENCE_DASH[d.confidence ?? 'low'])
       .attr('opacity', 0.7);
 
     // Tip baş harfi
     node.append('text')
-      .attr('text-anchor',  'middle')
+      .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'central')
-      .attr('font-size',    10)
-      .attr('font-weight',  'bold')
-      .attr('fill',         d => NODE_COLORS[d.type] || '#6B7280')
+      .attr('font-size', 10)
+      .attr('font-weight', 'bold')
+      .attr('fill', d => NODE_COLORS[d.type] || '#6B7280')
       .text(d => d.type[0]);
 
     // Etiket
     node.append('text')
       .attr('text-anchor', 'middle')
-      .attr('y',           32)
-      .attr('font-size',   9)
-      .attr('fill',        '#374151')
+      .attr('y', 32)
+      .attr('font-size', 9)
+      .attr('fill', '#374151')
       .attr('font-weight', '600')
       .text(d => d.label.length > 16 ? d.label.substring(0, 14) + '…' : d.label);
 
@@ -324,7 +324,7 @@ export const GraphPanel: React.FC = () => {
                     style={{
                       backgroundColor: CONFIDENCE_COLORS[c],
                       borderTop: c === 'medium' ? `2px dashed ${CONFIDENCE_COLORS[c]}` :
-                                 c === 'low'    ? `2px dotted ${CONFIDENCE_COLORS[c]}` : undefined
+                        c === 'low' ? `2px dotted ${CONFIDENCE_COLORS[c]}` : undefined
                     }}
                   />
                 </div>
@@ -376,7 +376,7 @@ export const GraphPanel: React.FC = () => {
                   style={{
                     color: CONFIDENCE_COLORS[selectedNode.confidence ?? 'low'],
                     backgroundColor: CONFIDENCE_COLORS[selectedNode.confidence ?? 'low'] + '15',
-                    borderColor:     CONFIDENCE_COLORS[selectedNode.confidence ?? 'low'] + '40'
+                    borderColor: CONFIDENCE_COLORS[selectedNode.confidence ?? 'low'] + '40'
                   }}
                 >
                   {selectedNode.confidence}
