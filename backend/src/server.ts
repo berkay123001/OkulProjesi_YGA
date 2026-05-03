@@ -17,7 +17,9 @@ app.use(cors({
 
 app.use(express.json());
 app.use('/api/gemini', geminiRouter);
+
 app.use('/api/history', chatHistoryRouter);
+
 
 // Health check — sunucunun çalışıp çalışmadığını test eder
 app.get('/api/health', (_req, res) => {
