@@ -29,7 +29,7 @@ geminiRouter.post('/chat', async (req: Request, res: Response) => {
       body: JSON.stringify({
         contents,
         systemInstruction: {
-          parts: [{ text: 'Sen bir siber güvenlik uzmanı asistanısın. Türkçe konuş.' }]
+          parts: [{ text: 'Sen bir haber doğrulama uzmanı asistanısın. Haberlerin doğruluğunu analiz et, kaynakları değerlendir ve dezenformasyonu tespit et. Türkçe konuş.' }]
         },
       }),
     });
