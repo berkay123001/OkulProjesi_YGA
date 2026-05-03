@@ -51,7 +51,7 @@ export const AgentChat: React.FC<AgentChatProps> = ({ view, activeSession, onUpd
 
     const isFirstMessage = allMessages.length <= 1;
     const newTitle = isFirstMessage ? (input.length > 30 ? input.substring(0, 30) + '...' : input) : undefined;
-    
+
     const updatedMessages = [...allMessages, userMessage];
     onUpdateMessages(activeSession.id, updatedMessages, newTitle);
 
@@ -59,18 +59,31 @@ export const AgentChat: React.FC<AgentChatProps> = ({ view, activeSession, onUpd
     setIsLoading(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Ali'nin backend proxy'sine gerçek API çağrısı
+      const response = await fetch('/api/gemini/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: input, history: allMessages })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Hatası: ${response.status} - ${response.statusText}`);
+      }
+
+      // Backend'in döndüğü json'ı parse et. (Eğer backend HTML vs dönerse diye try-catch yapıyoruz)
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        throw new Error("Backend'den geçerli bir JSON dönmedi. Lütfen proxy ayarlarını veya endpoint'i kontrol edin.");
+      }
       
-      const mockResponses = [
-        "Supervisor ajan isteği aldı ve **IdentityAgent**'a devretti. Sherlock ve Holehe araçlarıyla yapılan tarama sonucunda kullanıcıya ait 3 platform profili bulundu. Strateji ajanı sonuçları doğruladı.",
-        "Medya ajanı görseli `reverse_image_search` aracıyla taradı. Planlama aşamasında belirtilen manipülasyon riskleri incelendi ve orijinal görselle %98 eşleşme sağlandı.",
-        "Akademik ajan `search_academic_papers` aracıyla son 5 yılı taradı. İlgili yazarın 12 makalesi tespit edildi ve intihal kontrolünden geçirildi."
-      ];
-      
-      const responseText = mockResponses[Math.floor(Math.random() * mockResponses.length)] + "\n\n*(Sistem Notu: Çoklu-ajan boru hattı simülasyonu)*";
+      const responseText = data.response || data.text || data.message || "Bağlantı başarılı ancak cevap boş.";
       const agentInfo = getAgentInfo(responseText);
 
-      // Create a mock pipeline for visualization
+      // Şimdilik boru hattını sabit bırakıyoruz (Bunu backend'den dinamik de alabilirsiniz)
       const mockPipeline: PipelineStep[] = [
         { id: '1', label: 'Planla', status: 'completed', agent: 'DeepSeek-V3.2' },
         { id: '2', label: 'Görev Devri', status: 'completed', agent: 'Supervisor → ' + agentInfo.name },
@@ -92,8 +105,19 @@ export const AgentChat: React.FC<AgentChatProps> = ({ view, activeSession, onUpd
       };
 
       onUpdateMessages(activeSession.id, [...updatedMessages, assistantMessage]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Agent Error:", error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `*(Sistem Notu: Backend API bağlantısında hata oluştu: ${error?.message || "Bilinmeyen hata"}. Lütfen /api/gemini/chat endpoint'inin çalıştığından emin olun.)*`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        agentName: 'Sistem',
+        agentRole: 'Hata Bildirimi',
+        status: 'Bağlantı Hatası',
+        statusType: 'error'
+      };
+      onUpdateMessages(activeSession.id, [...updatedMessages, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -118,8 +142,8 @@ export const AgentChat: React.FC<AgentChatProps> = ({ view, activeSession, onUpd
       <div className={cn(
         "flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider",
         type === 'success' ? "bg-green-50 text-green-600 border border-green-100" :
-        type === 'warning' ? "bg-orange-50 text-orange-600 border border-orange-100" :
-        "bg-blue-50 text-blue-600 border border-blue-100"
+          type === 'warning' ? "bg-orange-50 text-orange-600 border border-orange-100" :
+            "bg-blue-50 text-blue-600 border border-blue-100"
       )}>
         {type === 'info' && <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />}
         {status}
@@ -129,7 +153,7 @@ export const AgentChat: React.FC<AgentChatProps> = ({ view, activeSession, onUpd
 
   const renderPipelineTimeline = (pipeline?: PipelineStep[]) => {
     if (!pipeline || pipeline.length === 0) return null;
-    
+
     return (
       <div className="mt-4 pt-4 border-t border-gray-100 bg-gray-50/50 -mx-4 -mb-4 p-4 rounded-b-2xl">
         <div className="flex items-center gap-1.5 mb-4">
@@ -143,11 +167,11 @@ export const AgentChat: React.FC<AgentChatProps> = ({ view, activeSession, onUpd
           {isFullPage && (
             <div className="absolute top-[11px] left-8 right-8 h-0.5 bg-blue-100 -z-10" />
           )}
-          
+
           {pipeline.map((step, idx) => {
             const isCompleted = step.status === 'completed';
             const isActive = step.status === 'active';
-            
+
             return (
               <div key={step.id} className={cn(
                 "flex relative z-10 group",
@@ -156,17 +180,17 @@ export const AgentChat: React.FC<AgentChatProps> = ({ view, activeSession, onUpd
                 {!isFullPage && idx !== pipeline.length - 1 && (
                   <div className="absolute left-2.5 top-6 bottom-[-16px] w-0.5 bg-blue-100 -z-10" />
                 )}
-                
+
                 <div className={cn(
                   "w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all border-2",
-                  isCompleted ? "bg-blue-600 border-blue-600 text-white" : 
-                  isActive ? "bg-white border-blue-600 text-blue-600 shadow-md shadow-blue-200" : "bg-white border-gray-200 text-gray-300",
+                  isCompleted ? "bg-blue-600 border-blue-600 text-white" :
+                    isActive ? "bg-white border-blue-600 text-blue-600 shadow-md shadow-blue-200" : "bg-white border-gray-200 text-gray-300",
                   "group-hover:scale-110"
                 )}>
-                  {isCompleted ? <Check className="w-3 h-3" /> : 
-                   isActive ? <Activity className="w-3 h-3 animate-pulse" /> : <Circle className="w-2 h-2" />}
+                  {isCompleted ? <Check className="w-3 h-3" /> :
+                    isActive ? <Activity className="w-3 h-3 animate-pulse" /> : <Circle className="w-2 h-2" />}
                 </div>
-                
+
                 <div className={cn(
                   "flex flex-col bg-white p-2 rounded-lg border border-gray-100 shadow-sm min-w-[120px]",
                   isFullPage ? "mt-3 items-center" : "items-start"
@@ -220,7 +244,7 @@ export const AgentChat: React.FC<AgentChatProps> = ({ view, activeSession, onUpd
               </span>
             </div>
           )}
-          
+
           <AnimatePresence initial={false}>
             {messages.map((msg) => {
               const agentInfo = msg.role === 'assistant' ? getAgentInfo(msg.content) : null;
@@ -260,7 +284,7 @@ export const AgentChat: React.FC<AgentChatProps> = ({ view, activeSession, onUpd
                     <div className="markdown-body text-[13px] leading-relaxed">
                       <ReactMarkdown>{msg.content}</ReactMarkdown>
                     </div>
-                    
+
                     {/* Render the pipeline timeline if exists and it's an assistant message */}
                     {msg.role === 'assistant' && renderPipelineTimeline(msg.pipeline)}
 

@@ -12,11 +12,11 @@ interface ChatHistoryProps {
   onDeleteSession: (id: string) => void;
 }
 
-export const ChatHistory: React.FC<ChatHistoryProps> = ({ 
-  view, 
-  sessions, 
-  activeSessionId, 
-  onSelectSession, 
+export const ChatHistory: React.FC<ChatHistoryProps> = ({
+  view,
+  sessions,
+  activeSessionId,
+  onSelectSession,
   onNewChat,
   onDeleteSession
 }) => {
@@ -52,7 +52,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
     <div className={cn("flex flex-col h-full overflow-hidden", styles.container)}>
       <div className="p-3 flex items-center justify-between shrink-0">
         <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-50">Soruşturma Arşivi</h3>
-        <button 
+        <button
           onClick={onNewChat}
           className={cn("p-1 rounded-md transition-colors", styles.button)}
         >
