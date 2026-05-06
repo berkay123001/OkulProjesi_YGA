@@ -85,10 +85,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, onViewChange }) => {
           </div>
           <p className="mt-2 text-[11px] leading-5 text-slate-400">Neo4j, Search Chain ve Strategy pipeline demo modunda hazır.</p>
         </div>
-        <button className={cn("w-full flex items-center gap-2.5 p-2 rounded-lg transition-all", isCollapsed && "justify-center", styles.item)} title="Sistem">
-          <Settings className="w-4 h-4 shrink-0" />
-          <span className={cn(styles.label, isCollapsed && "hidden")}>Sistem</span>
-        </button>
         <div className={cn("pt-2 text-center", isCollapsed && "hidden")}>
           <span className="text-[9px] text-slate-600 font-mono">MVP Prototype</span>
         </div>

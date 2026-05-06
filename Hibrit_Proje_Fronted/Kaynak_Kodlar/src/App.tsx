@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   Bot,
+  ChevronLeft,
   ChevronRight,
   CircleDot,
   Clock3,
@@ -232,9 +233,11 @@ function AnalysisWorkspace({
   setQuery: (value: string) => void;
   onViewChange: (view: ViewType) => void;
 }) {
+  const [agentPanelCollapsed, setAgentPanelCollapsed] = useState(false);
+
   return (
-    <div className="grid h-full min-h-0 grid-cols-[1fr_340px] overflow-hidden">
-      <section className="evidence-page-shell flex min-h-0 min-w-0 flex-col">
+    <div className="flex h-full min-h-0 overflow-hidden">
+      <section className="evidence-page-shell flex min-h-0 min-w-0 flex-1 flex-col">
         <div className="border-b border-[#D7E7FA] bg-white/95 p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -291,18 +294,33 @@ function AnalysisWorkspace({
         </div>
       </section>
 
-      <AgentFlowPanel />
+      {/* Toggle button: fixed so it always aligns with sidebar toggle (top-6) */}
+      <button
+        onClick={() => setAgentPanelCollapsed(!agentPanelCollapsed)}
+        style={{ right: agentPanelCollapsed ? '6px' : '344px' }}
+        className="fixed top-6 z-30 flex h-7 w-7 items-center justify-center rounded-full border border-[#1E293B] bg-[#08111F] text-slate-300 shadow-lg hover:text-white transition-all duration-300"
+        title={agentPanelCollapsed ? 'Agent Runtime aç' : 'Agent Runtime kapat'}
+      >
+        {agentPanelCollapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+      </button>
+      <div className="flex shrink-0">
+        <AgentFlowPanel isCollapsed={agentPanelCollapsed} />
+      </div>
     </div>
   );
 }
 
-function AgentFlowPanel() {
+function AgentFlowPanel({ isCollapsed }: { isCollapsed: boolean }) {
   return (
-    <aside className="min-h-0 overflow-auto border-l border-[#1E293B] bg-[#08111F] p-5 text-white">
-      <div className="mb-5">
-        <div className="text-xs font-bold uppercase tracking-widest text-[#22D3EE]">Agent Runtime</div>
-        <h3 className="mt-1 font-display text-lg font-bold">Arka Plan Akışı</h3>
-      </div>
+    <aside className={cn(
+      "flex shrink-0 flex-col border-l border-[#1E293B] bg-[#08111F] text-white transition-all duration-300 overflow-hidden",
+      isCollapsed ? "w-0 border-l-0" : "w-[340px]"
+    )}>
+      <div className={cn("h-full w-[340px] overflow-auto p-5 transition-opacity duration-300", isCollapsed ? "invisible opacity-0" : "opacity-100")}>
+        <div className="mb-5">
+          <div className="text-xs font-bold uppercase tracking-widest text-[#22D3EE]">Agent Runtime</div>
+          <h3 className="mt-1 font-display text-lg font-bold">Arka Plan Akışı</h3>
+        </div>
       <div className="relative space-y-4 before:absolute before:left-4 before:top-2 before:h-[calc(100%-20px)] before:w-px before:bg-[#1E293B]">
         {agentFlow.map((agent) => (
           <div key={agent.name} className="relative flex gap-4">
@@ -322,6 +340,7 @@ function AgentFlowPanel() {
             </div>
           </div>
         ))}
+      </div>
       </div>
     </aside>
   );
