@@ -118,13 +118,15 @@ export default function App() {
   const [view, setView] = useState<ViewType>('dashboard');
   const [query, setQuery] = useState('Sosyal medyada yayılan bu bağış kampanyası gerçek mi? URL ve görsel birlikte incelensin.');
   const [selectedReportId, setSelectedReportId] = useState(reportHistory[0].id);
+  const [isGraphOpen, setIsGraphOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
 
   return (
     <div className="flex h-dvh w-full overflow-hidden bg-[#EEF6FF] text-slate-950">
       <Sidebar view={view} onViewChange={setView} />
 
       <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        <Header view={view} />
+        {view !== 'analysis_workspace' && <Header view={view} />}
         <section className="min-h-0 flex-1 overflow-hidden">
           {view === 'dashboard' && <Dashboard onViewChange={setView} />}
           {view === 'analysis_workspace' && (
@@ -134,6 +136,9 @@ export default function App() {
             <Neo4jGraph
               selectedReportId={selectedReportId}
               onSelectReport={setSelectedReportId}
+              isGraphOpen={isGraphOpen}
+              onOpenGraph={() => setIsGraphOpen(true)}
+              onCloseGraph={() => setIsGraphOpen(false)}
               onViewChange={setView}
             />
           )}
@@ -141,6 +146,9 @@ export default function App() {
             <Report
               selectedReportId={selectedReportId}
               onSelectReport={setSelectedReportId}
+              isReportOpen={isReportOpen}
+              onOpenReport={() => setIsReportOpen(true)}
+              onCloseReport={() => setIsReportOpen(false)}
               onViewChange={setView}
             />
           )}
@@ -238,7 +246,16 @@ function AnalysisWorkspace({
   return (
     <div className="flex h-full min-h-0 overflow-hidden">
       <section className="evidence-page-shell flex min-h-0 min-w-0 flex-1 flex-col">
-        <div className="border-b border-[#D7E7FA] bg-white/95 p-4">
+        <div className="shrink-0 border-b border-[#1E293B] bg-[#08111F] px-6 py-3 text-white">
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-500">
+            <span>Verification Ops</span>
+            <ChevronRight className="h-3 w-3" />
+            <span className="text-[#2563EB]">Analiz Alanı</span>
+          </div>
+          <h1 className="mt-1 font-display text-xl font-bold tracking-tight text-white">Analiz Alanı</h1>
+        </div>
+
+        <div className="shrink-0 border-b border-[#D7E7FA] bg-white/95 p-4">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Canlı Analiz</div>
@@ -349,26 +366,68 @@ function AgentFlowPanel({ isCollapsed }: { isCollapsed: boolean }) {
 function Neo4jGraph({
   selectedReportId,
   onSelectReport,
+  isGraphOpen,
+  onOpenGraph,
+  onCloseGraph,
   onViewChange,
 }: {
   selectedReportId: string;
   onSelectReport: (id: string) => void;
+  isGraphOpen: boolean;
+  onOpenGraph: () => void;
+  onCloseGraph: () => void;
   onViewChange: (view: ViewType) => void;
 }) {
   const selectedReport = reportHistory.find((report) => report.id === selectedReportId) ?? reportHistory[0];
 
+  if (!isGraphOpen) {
+    return (
+      <div className="evidence-page-shell h-full overflow-auto p-6">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-6">
+            <div className="text-xs font-bold uppercase tracking-widest text-slate-500">Neo4j Graph</div>
+            <h2 className="mt-1 font-display text-2xl font-bold text-[#08111F]">Geçmiş Raporlar</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              Bir rapora tıklandığında o analize ait Neo4j ilişki grafiği ayrı graf ekranında açılır.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            {reportHistory.map((report) => (
+              <button
+                key={report.id}
+                onClick={() => {
+                  onSelectReport(report.id);
+                  onOpenGraph();
+                }}
+                className="rounded-lg border border-[#B7D7FF] bg-white/95 p-5 text-left shadow-sm shadow-blue-950/5 transition hover:-translate-y-0.5 hover:border-[#2563EB] hover:shadow-md"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-lg font-bold text-[#08111F]">{report.title}</div>
+                    <div className="mt-2 text-sm text-slate-500">{report.status}</div>
+                  </div>
+                  <div className="rounded-lg bg-[#E7F8FF] px-3 py-2 text-lg font-bold text-[#2563EB]">{report.score}%</div>
+                </div>
+                <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
+                  <span className="text-xs font-bold uppercase tracking-widest text-slate-400">{report.date}</span>
+                  <span className="text-xs font-bold text-[#2563EB]">Grafiği Aç</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid h-full grid-cols-[280px_1fr_340px] overflow-hidden bg-[#08111F] text-white">
-      <ReportListPanel
-        title="Geçmiş Raporlar"
-        selectedReportId={selectedReport.id}
-        onSelectReport={onSelectReport}
-      />
+    <div className="grid h-full grid-cols-[1fr_340px] overflow-hidden bg-[#08111F] text-white">
       <section className="evidence-dotted-canvas relative overflow-hidden text-[#08111F]">
         <div className="absolute left-6 top-6 z-10 flex gap-2">
-          <button onClick={() => onViewChange('analysis_workspace')} className="flex items-center gap-2 rounded-lg border border-[#B7D7FF] bg-white/90 px-3 py-2 text-xs font-bold text-[#08111F] shadow-sm">
+          <button onClick={onCloseGraph} className="flex items-center gap-2 rounded-lg border border-[#B7D7FF] bg-white/90 px-3 py-2 text-xs font-bold text-[#08111F] shadow-sm">
             <ArrowLeft className="h-4 w-4" />
-            Analize Dön
+            Raporlara Dön
           </button>
           <button onClick={() => onViewChange('report')} className="rounded-lg bg-[#2563EB] px-3 py-2 text-xs font-bold text-white shadow-sm">
             Raporu Gör
@@ -420,22 +479,74 @@ function Neo4jGraph({
 function Report({
   selectedReportId,
   onSelectReport,
+  isReportOpen,
+  onOpenReport,
+  onCloseReport,
   onViewChange,
 }: {
   selectedReportId: string;
   onSelectReport: (id: string) => void;
+  isReportOpen: boolean;
+  onOpenReport: () => void;
+  onCloseReport: () => void;
   onViewChange: (view: ViewType) => void;
 }) {
   const selectedReport = reportHistory.find((report) => report.id === selectedReportId) ?? reportHistory[0];
 
+  if (!isReportOpen) {
+    return (
+      <div className="evidence-page-shell h-full overflow-auto p-6">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-6">
+            <div className="text-xs font-bold uppercase tracking-widest text-slate-500">Rapor</div>
+            <h2 className="mt-1 font-display text-2xl font-bold text-[#08111F]">Geçmiş Analiz Raporları</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              Bir rapora tıklandığında detaylı doğrulama raporu ayrı ekranda açılır.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            {reportHistory.map((report) => (
+              <button
+                key={report.id}
+                onClick={() => {
+                  onSelectReport(report.id);
+                  onOpenReport();
+                }}
+                className="rounded-lg border border-[#B7D7FF] bg-white/95 p-5 text-left shadow-sm shadow-blue-950/5 transition hover:-translate-y-0.5 hover:border-[#2563EB] hover:shadow-md"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-lg font-bold text-[#08111F]">{report.title}</div>
+                    <div className="mt-2 text-sm text-slate-500">{report.status}</div>
+                  </div>
+                  <div className="rounded-lg bg-[#E7F8FF] px-3 py-2 text-lg font-bold text-[#2563EB]">{report.score}%</div>
+                </div>
+                <div className="mt-5 grid grid-cols-3 gap-3 border-t border-slate-100 pt-4">
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Tarih</div>
+                    <div className="mt-1 text-xs font-semibold text-slate-600">{report.date}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Kanıt</div>
+                    <div className="mt-1 text-xs font-semibold text-slate-600">9 kayıt</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Çelişki</div>
+                    <div className="mt-1 text-xs font-semibold text-slate-600">2 sinyal</div>
+                  </div>
+                </div>
+                <div className="mt-5 text-xs font-bold text-[#2563EB]">Raporu Aç</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid h-full grid-cols-[300px_1fr] overflow-hidden">
-      <ReportListPanel
-        title="Geçmiş Analiz Raporları"
-        selectedReportId={selectedReport.id}
-        onSelectReport={onSelectReport}
-        light
-      />
+    <div className="h-full overflow-hidden">
       <div className="evidence-page-shell overflow-auto p-6">
       <div className="mx-auto max-w-5xl rounded-lg border border-slate-200 bg-white">
         <div className="flex items-center justify-between border-b border-slate-100 p-6">
@@ -444,8 +555,11 @@ function Report({
             <h2 className="mt-1 font-display text-2xl font-bold">{selectedReport.title}</h2>
           </div>
           <div className="flex gap-2">
+            <button onClick={onCloseReport} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold">
+              Raporlara Dön
+            </button>
             <button onClick={() => onViewChange('analysis_workspace')} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold">
-              Analize Dön
+              Analiz Alanı
             </button>
             <button className="rounded-lg bg-[#2563EB] px-3 py-2 text-xs font-bold text-white hover:bg-blue-700">
               PDF / Markdown Export
