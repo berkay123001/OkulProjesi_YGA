@@ -1,115 +1,96 @@
 import React from 'react';
 import {
   ShieldCheck,
-  Search,
-  Archive,
-  BarChart3,
+  FileText,
+  Network,
+  MessageSquareText,
   Settings,
-  LogOut,
-  ChevronRight,
-  Plus,
-  HelpCircle,
-  Moon,
-  Sun
+  Activity,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ViewType } from '@/types';
 
 interface SidebarProps {
   view: ViewType;
+  onViewChange: (view: ViewType) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ view }) => {
-  const [isDarkMode, setIsDarkMode] = React.useState(false);
+export const Sidebar: React.FC<SidebarProps> = ({ view, onViewChange }) => {
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   const menuItems = [
-    { icon: ShieldCheck, label: 'Güvenlik Özeti', id: 'summary' },
-    { icon: Search, label: 'Yeni Analiz', id: 'analysis' },
-    { icon: BarChart3, label: 'İstatistikler', id: 'stats' },
+    { icon: ShieldCheck, label: 'Dashboard', id: 'dashboard' as ViewType },
+    { icon: MessageSquareText, label: 'Analiz Alanı', id: 'analysis_workspace' as ViewType },
+    { icon: Network, label: 'Neo4j Graph', id: 'neo4j_graph' as ViewType },
+    { icon: FileText, label: 'Rapor', id: 'report' as ViewType },
   ];
 
   const getThemeStyles = () => {
     return {
-      container: "w-full bg-white border-r border-gray-100",
-      item: "text-gray-500 hover:text-blue-600 hover:bg-blue-50/50",
-      active: "text-blue-600 bg-blue-50 font-bold border-r-2 border-blue-600",
-      label: "font-sans text-[11px] tracking-tight uppercase font-medium"
+      container: "bg-[#08111F] border-r border-[#1E293B] text-slate-100",
+      item: "text-slate-400 hover:text-white hover:bg-[#0F1B2E]",
+      active: "text-white bg-[#2563EB] font-bold shadow-lg shadow-blue-950/30",
+      label: "font-sans text-[11px] tracking-tight uppercase font-semibold"
     };
   };
 
   const styles = getThemeStyles();
 
   return (
-    <div className={cn("flex flex-col transition-all duration-300 shrink-0", styles.container)}>
-      <div className="p-4 flex items-center gap-3">
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-blue-600 text-white shadow-sm">
+    <div className={cn("relative flex h-dvh flex-col transition-all duration-300 shrink-0", isCollapsed ? "w-[76px]" : "w-[260px]", styles.container)}>
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="absolute -right-3 top-6 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-[#1E293B] bg-[#08111F] text-slate-300 shadow-lg hover:text-white"
+        title={isCollapsed ? 'Menüyü aç' : 'Menüyü kapat'}
+      >
+        {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+      </button>
+
+      <div className={cn("p-5 flex items-center gap-3", isCollapsed && "justify-center px-3")}>
+        <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-[#2563EB] text-white shadow-sm">
           <ShieldCheck className="w-4 h-4" />
         </div>
-        <span className="font-bold tracking-tighter text-lg text-blue-900">
-          CG<span className="text-blue-600">AI</span>
-        </span>
-      </div>
-
-      <div className="px-4 mb-6">
-        <button className="w-full py-3 rounded-xl flex items-center justify-center gap-2 transition-all bg-blue-600 text-white font-bold shadow-md shadow-blue-200 active:scale-95">
-          <Plus className="w-4 h-4" />
-          <span className="text-xs uppercase tracking-widest">Yeni Analiz Başlat</span>
-        </button>
+        <div className={cn(isCollapsed && "hidden")}>
+          <span className="block font-display font-bold tracking-tight text-lg text-white">VERIFY OPS</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#22D3EE]">OSINT Mission Control</span>
+        </div>
       </div>
 
       <nav className="px-2 space-y-0.5 mb-2 flex-1">
-        {menuItems.map((item, idx) => (
+        {menuItems.map((item) => (
           <button
             key={item.id}
+            onClick={() => onViewChange(item.id)}
             className={cn(
-              "w-full flex items-center gap-2.5 p-2 rounded-lg transition-all group",
+              "w-full flex items-center gap-3 p-3 rounded-lg transition-all group text-left",
+              isCollapsed && "justify-center",
               styles.item,
-              idx === 0 && styles.active
+              view === item.id && styles.active
             )}
+            title={item.label}
           >
             <item.icon className="w-4 h-4 shrink-0" />
-            <span className={styles.label}>{item.label}</span>
+            <span className={cn(styles.label, isCollapsed && "hidden")}>{item.label}</span>
           </button>
         ))}
       </nav>
 
-      <div className="px-2 py-4 border-t border-gray-100 space-y-1">
-        {/* Theme Toggle */}
-        <div className="px-2 py-2 mb-2">
-          <div className="flex items-center justify-between p-2 bg-gray-50 rounded-xl border border-gray-100">
-            <div className="flex items-center gap-2">
-              {isDarkMode ? <Moon className="w-3.5 h-3.5 text-gray-400" /> : <Sun className="w-3.5 h-3.5 text-amber-500" />}
-              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                {isDarkMode ? 'Karanlık' : 'Aydınlık'}
-              </span>
-            </div>
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="w-8 h-4 bg-gray-200 rounded-full relative transition-colors"
-            >
-              <div className={cn(
-                "absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all shadow-sm",
-                isDarkMode ? "left-4.5" : "left-0.5"
-              )} />
-            </button>
+      <div className="px-3 py-4 border-t border-slate-800 space-y-3">
+        <div className={cn("rounded-lg border border-[#1E293B] bg-[#0F1B2E] p-3", isCollapsed && "hidden")}>
+          <div className="flex items-center gap-2 text-[#22C55E]">
+            <Activity className="w-4 h-4" />
+            <span className="text-[10px] font-bold uppercase tracking-widest">Servisler Aktif</span>
           </div>
+          <p className="mt-2 text-[11px] leading-5 text-slate-400">Neo4j, Search Chain ve Strategy pipeline demo modunda hazır.</p>
         </div>
-
-        <button className={cn("w-full flex items-center gap-2.5 p-2 rounded-lg transition-all", styles.item)}>
-          <HelpCircle className="w-4 h-4 shrink-0" />
-          <span className={styles.label}>Yardım & Dokümantasyon</span>
-        </button>
-        <button className={cn("w-full flex items-center gap-2.5 p-2 rounded-lg transition-all", styles.item)}>
+        <button className={cn("w-full flex items-center gap-2.5 p-2 rounded-lg transition-all", isCollapsed && "justify-center", styles.item)} title="Sistem">
           <Settings className="w-4 h-4 shrink-0" />
-          <span className={styles.label}>Ayarlar</span>
+          <span className={cn(styles.label, isCollapsed && "hidden")}>Sistem</span>
         </button>
-        <button className="w-full flex items-center gap-2.5 p-2 rounded-lg transition-all text-red-500 hover:bg-red-50">
-          <LogOut className="w-4 h-4 shrink-0" />
-          <span className={styles.label}>Çıkış Yap</span>
-        </button>
-
-        <div className="pt-4 text-center">
-          <span className="text-[9px] text-gray-400 font-mono opacity-60">v2.4.1 Stable | Build: 2026</span>
+        <div className={cn("pt-2 text-center", isCollapsed && "hidden")}>
+          <span className="text-[9px] text-slate-600 font-mono">MVP Prototype</span>
         </div>
       </div>
     </div>

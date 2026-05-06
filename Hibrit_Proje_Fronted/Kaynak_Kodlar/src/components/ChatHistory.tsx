@@ -43,6 +43,13 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
           active: "text-modular-accent bg-black/30",
           button: "bg-modular-accent text-white hover:bg-modular-accent/90"
         };
+      default:
+        return {
+          container: "bg-gray-50",
+          item: "text-gray-600 hover:text-light-secondary hover:bg-white",
+          active: "text-light-secondary bg-white shadow-sm font-bold",
+          button: "bg-light-accent text-white hover:bg-light-accent/90"
+        };
     }
   };
 

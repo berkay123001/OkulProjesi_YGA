@@ -1,4 +1,14 @@
-export type ViewType = 'summary' | 'detail' | 'osint' | 'graph' | 'agent_chat';
+export type ViewType =
+  | 'dashboard'
+  | 'new_analysis'
+  | 'analysis_workspace'
+  | 'neo4j_graph'
+  | 'report'
+  | 'summary'
+  | 'detail'
+  | 'osint'
+  | 'graph'
+  | 'agent_chat';
 
 export interface AnalysisResult {
   id: string;
