@@ -1,6 +1,7 @@
 import React from 'react';
 import {
-  ShieldCheck,
+  Radar,
+  LayoutDashboard,
   FileText,
   Network,
   MessageSquareText,
@@ -21,9 +22,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, onViewChange }) => {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   const menuItems = [
-    { icon: ShieldCheck, label: 'Dashboard', id: 'dashboard' as ViewType },
+    { icon: LayoutDashboard, label: 'Sistem Paneli', id: 'dashboard' as ViewType },
     { icon: MessageSquareText, label: 'Analiz Alanı', id: 'analysis_workspace' as ViewType },
-    { icon: Network, label: 'Neo4j Graph', id: 'neo4j_graph' as ViewType },
+    { icon: Network, label: 'Bilgi Grafı', id: 'neo4j_graph' as ViewType },
     { icon: FileText, label: 'Rapor', id: 'report' as ViewType },
   ];
 
@@ -50,7 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, onViewChange }) => {
 
       <div className={cn("p-5 flex items-center gap-3", isCollapsed && "justify-center px-3")}>
         <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-[#2563EB] text-white shadow-sm">
-          <ShieldCheck className="w-4 h-4" />
+          <Radar className="w-5 h-5" />
         </div>
         <div className={cn(isCollapsed && "hidden")}>
           <span className="block font-display font-bold tracking-tight text-lg text-white">VERIFY OPS</span>
