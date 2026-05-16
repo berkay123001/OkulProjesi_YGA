@@ -20,9 +20,26 @@
   --color-modular-card: #FFFFFF;
   --color-modular-accent: #2563EB;
   --color-modular-secondary: #475569;
+
+  --color-evidence-void: #08111F;
+  --color-evidence-panel: #0F1B2E;
+  --color-evidence-border: #1E293B;
+  --color-evidence-surface: #F8FAFC;
+  --color-evidence-primary: #2563EB;
+  --color-evidence-cyan: #22D3EE;
+  --color-evidence-success: #22C55E;
+  --color-evidence-warning: #F59E0B;
+  --color-evidence-risk: #EF4444;
 }
 
 @layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    overflow: hidden;
+  }
+
   body {
     @apply antialiased transition-colors duration-300;
   }
@@ -41,5 +58,22 @@
 
 .markdown-body p {
   @apply mb-2;
+}
+
+.evidence-dotted-canvas {
+  background-color: #F8FAFC;
+  background-image:
+    radial-gradient(circle at center, rgba(8, 17, 31, 0.34) 0 1.15px, transparent 1.25px),
+    radial-gradient(circle at center, rgba(34, 211, 238, 0.12) 0 1px, transparent 1.2px),
+    radial-gradient(circle at center, rgba(248, 250, 252, 0) 0%, rgba(248, 250, 252, 0.72) 62%, #F8FAFC 100%);
+  background-size: 18px 18px, 72px 72px, 100% 100%;
+  background-position: center;
+}
+
+.evidence-page-shell {
+  background:
+    linear-gradient(135deg, rgba(34, 211, 238, 0.08), transparent 34%),
+    linear-gradient(315deg, rgba(37, 99, 235, 0.08), transparent 36%),
+    #EEF6FF;
 }
 
