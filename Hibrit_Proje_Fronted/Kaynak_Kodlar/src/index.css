@@ -77,3 +77,29 @@
     #EEF6FF;
 }
 
+@media print {
+  html,
+  body,
+  #root {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  * {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  .evidence-page-shell {
+    background: white !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  @page {
+    margin: 16mm 14mm;
+    size: A4;
+  }
+}
+

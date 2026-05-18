@@ -872,24 +872,26 @@ function Neo4jGraph({
 function AccordionItem({ title, icon: Icon, children, defaultOpen = false }: any) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   return (
-    <div className="border border-slate-200 rounded-md overflow-hidden mb-4 bg-white shadow-sm print:shadow-none print:border-none print:mb-8">
+    <div className="border border-slate-200 rounded-lg overflow-hidden mb-4 bg-white shadow-sm hover:shadow-md transition-shadow print:shadow-none print:border-none print:mb-8">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors text-left print:px-0 print:border-b print:border-slate-300 print:mb-4"
+        className="w-full flex items-center justify-between px-7 py-5 hover:bg-slate-50/80 transition-colors text-left print:px-0 print:border-b print:border-slate-300 print:mb-4"
       >
         <div className="flex items-center gap-3">
-          <Icon className="h-5 w-5 text-[#2563EB] print:text-slate-800" />
-          <span className="font-serif text-[17px] font-bold text-slate-900 tracking-tight print:text-xl print:text-black">{title}</span>
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-50 border border-blue-100 print:bg-transparent print:border-none">
+            <Icon className="h-4 w-4 text-[#2563EB] print:text-slate-800" />
+          </div>
+          <span className="font-semibold text-[16px] text-slate-800 tracking-tight print:text-xl print:text-black">{title}</span>
         </div>
         <div className="print:hidden">
-          {isOpen ? <ChevronUp className="h-5 w-5 text-slate-500" /> : <ChevronDown className="h-5 w-5 text-slate-500" />}
+          {isOpen ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
         </div>
       </button>
       <div className={cn(
-        "px-6 pb-6 pt-3 border-t border-slate-100 bg-white print:block print:border-none print:px-0 print:py-0",
+        "px-8 pb-8 pt-4 border-t border-slate-100 bg-white print:block print:border-none print:px-0 print:py-0",
         isOpen ? "block" : "hidden"
       )}>
-        <div className="text-[15px] leading-8 text-slate-800 tracking-wide text-justify print:text-black">
+        <div className="text-[14.5px] leading-relaxed text-slate-700 tracking-wide print:text-black [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-slate-800 [&_h2]:mb-2 [&_h2]:mt-4 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-slate-700 [&_h3]:mb-1.5 [&_h3]:mt-3">
           {children}
         </div>
       </div>
@@ -990,25 +992,25 @@ function Report({
       <div className="evidence-page-shell h-full overflow-auto p-6 print:overflow-visible print:h-auto print:p-0">
         <div className="mx-auto max-w-5xl">
           {/* Header Area */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-8 print:mb-4 print:block">
             <div>
-              <div className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+              <div className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2 print:hidden">
                 <button onClick={onCloseReport} className="hover:text-[#2563EB] transition-colors"><ArrowLeft className="h-4 w-4" /></button>
                 İstihbarat Özet Raporu
               </div>
-              <h2 className="mt-2 font-display text-3xl font-bold text-[#08111F]">{selectedReport.title}</h2>
+              <h2 className="mt-2 font-display text-3xl font-bold text-[#08111F] print:mt-0">{selectedReport.title}</h2>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 print:hidden">
               <button 
                 onClick={handleShare}
-                className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors print:hidden"
+                className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors"
               >
                 {isCopied ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <Share2 className="h-4 w-4" />}
                 {isCopied ? 'Kopyalandı' : 'Paylaş'}
               </button>
               <button 
                 onClick={() => window.print()}
-                className="flex items-center gap-2 rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-700 transition-colors print:hidden"
+                className="flex items-center gap-2 rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-700 transition-colors"
               >
                 <Download className="h-4 w-4" /> PDF Olarak İndir
               </button>
@@ -1016,52 +1018,62 @@ function Report({
           </div>
 
           {/* Top Metric Widgets */}
-          <div className="grid grid-cols-3 gap-6 mb-8">
-            <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm flex items-center justify-between">
+          <div className="grid grid-cols-3 gap-4 mb-5">
+            <div className="rounded-lg border border-slate-200 bg-white px-5 py-3.5 shadow-sm flex items-center justify-between">
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Güvenilirlik Skoru</div>
-                <div className="mt-2 text-3xl font-display font-bold text-slate-900">{selectedReport.score}%</div>
+                <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Güvenilirlik Skoru</div>
+                <div className="mt-1 text-2xl font-display font-bold text-slate-900">{selectedReport.score}%</div>
               </div>
-              <Activity className="h-8 w-8 text-slate-800" />
+              <Activity className="h-6 w-6 text-slate-400" />
             </div>
             
-            <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm flex items-center justify-between">
+            <div className="rounded-lg border border-slate-200 bg-white px-5 py-3.5 shadow-sm flex items-center justify-between">
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Taranan Kaynak</div>
-                <div className="mt-2 text-3xl font-display font-bold text-slate-900">14</div>
+                <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Taranan Kaynak</div>
+                <div className="mt-1 text-2xl font-display font-bold text-slate-900">14</div>
               </div>
-              <Database className="h-8 w-8 text-slate-800" />
+              <Database className="h-6 w-6 text-slate-400" />
             </div>
 
-            <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm flex items-center justify-between">
+            <div className="rounded-lg border border-slate-200 bg-white px-5 py-3.5 shadow-sm flex items-center justify-between">
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Çelişen Kaynak</div>
-                <div className="mt-2 text-3xl font-display font-bold text-slate-900">3</div>
+                <div className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Çelişen Kaynak</div>
+                <div className="mt-1 text-2xl font-display font-bold text-slate-900">3</div>
               </div>
-              <AlertTriangle className="h-8 w-8 text-slate-800" />
+              <AlertTriangle className="h-6 w-6 text-slate-400" />
             </div>
           </div>
 
-          {/* Nihai Karar Kutusu */}
-          <div className="mb-8 rounded-lg border border-orange-200 bg-orange-50 p-6 shadow-sm">
-            <div className="flex items-center gap-3 font-bold text-orange-700 mb-5">
-              <ShieldCheck className="h-6 w-6 text-orange-600" />
-              <span className="text-xl">Nihai Karar Özeti</span>
+          {/* Nihai Karar — Compact Alert Bar */}
+          <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-orange-200 bg-orange-50 px-5 py-3 shadow-sm">
+            <div className="flex items-center gap-2 shrink-0">
+              <ShieldCheck className="h-4 w-4 text-orange-500" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-orange-600">Nihai Karar</span>
             </div>
-            <div className="grid grid-cols-3 gap-6 border-t border-orange-200 pt-5">
-              <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-orange-600">Risk Durumu</div>
-                <div className="mt-2 text-sm font-semibold text-orange-900">{selectedReport.finalDecision.risk}</div>
-              </div>
-              <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-orange-600">Haber Doğrulandı Mı?</div>
-                <div className="mt-2 text-sm font-semibold text-orange-900">{selectedReport.finalDecision.verified}</div>
-              </div>
-              <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-orange-600">Yanlış Pozitif Filtre Sonucu</div>
-                <div className="mt-2 text-sm font-semibold text-orange-900">{selectedReport.finalDecision.falsePositive}</div>
-              </div>
+            <span className="h-4 w-px bg-orange-200 shrink-0 hidden sm:block" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-orange-400">Risk:</span>
+              <span className="text-xs font-semibold text-orange-900">{selectedReport.finalDecision.risk}</span>
             </div>
+            <span className="text-orange-200 hidden sm:block">•</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-orange-400">Doğrulama:</span>
+              <span className="text-xs font-semibold text-orange-900">{selectedReport.finalDecision.verified}</span>
+            </div>
+            <span className="text-orange-200 hidden sm:block">•</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-orange-400">Filtre:</span>
+              <span className="text-xs font-semibold text-orange-900">{selectedReport.finalDecision.falsePositive}</span>
+            </div>
+          </div>
+
+          {/* Rapor Metadata Satırı */}
+          <div className="mb-6 mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-slate-100 bg-slate-50 px-5 py-3 text-[11px] font-medium tracking-wide text-slate-400 print:bg-transparent print:border-none print:px-0">
+            <span>Rapor Kodu: <span className="font-semibold text-slate-500">#OSINT-2026-A94</span></span>
+            <span className="text-slate-300">•</span>
+            <span>Analiz Tarihi: <span className="font-semibold text-slate-500">{selectedReport.date}</span></span>
+            <span className="text-slate-300">•</span>
+            <span>Doğrulama Modeli: <span className="font-semibold text-slate-500">Hybrid Graph-RAG pipeline</span></span>
           </div>
 
           {/* Accordion Sections */}
