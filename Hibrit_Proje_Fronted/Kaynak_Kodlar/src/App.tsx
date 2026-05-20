@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Activity,
   AlertTriangle,
@@ -40,10 +40,13 @@ import {
   Area,
 } from 'recharts';
 import { Sidebar } from './components/Sidebar';
-import { ViewType } from '@/types';
+import { osintApi } from '@/lib/api';
+import { useOsintEvents } from '@/hooks/useOsintEvents';
+import type { ChatMessage, GraphData, HealthStatus, SseEvent, ToolDetail, ViewType } from '@/types';
 import { cn } from '@/lib/utils';
 
-type AgentStatus = 'completed' | 'searching' | 'analyzing' | 'queued' | 'reviewing';
+type AgentStatus = 'completed' | 'searching' | 'analyzing' | 'queued' | 'reviewing' | 'failed';
+type RuntimeAgent = { name: string; status: AgentStatus; text: string; tool: string; progress: number };
 
 const recentAnalyses = [
   { title: 'Sosyal medya dolandırıcılık iddiası', status: 'Analiz sürüyor', score: 68, tag: 'Scam' },
@@ -94,7 +97,7 @@ const reportHistory = [
 ];
 
 
-const agentFlow: { name: string; status: AgentStatus; text: string; tool: string; progress: number }[] = [
+const agentFlow: RuntimeAgent[] = [
   {
     name: 'Supervisor',
     status: 'completed',
@@ -160,7 +163,158 @@ const statusStyles: Record<AgentStatus, string> = {
   analyzing: 'text-[#22D3EE] bg-[#22D3EE]/10',
   queued: 'text-slate-400 bg-slate-400/10',
   reviewing: 'text-[#F59E0B] bg-[#F59E0B]/10',
+  failed: 'text-[#EF4444] bg-[#EF4444]/10',
 };
+
+type ReportRecord = (typeof reportHistory)[number] & { apiContent?: string; sourceContent?: string };
+
+function inferAgentName(message = ''): string | null {
+  const lower = message.toLowerCase();
+  if (lower.includes('identity')) return 'Identity Agent';
+  if (lower.includes('media')) return 'Media Agent';
+  if (lower.includes('academic')) return 'Academic Agent';
+  if (lower.includes('strategy')) return 'Strategy Agent';
+  if (lower.includes('supervisor') || lower.includes('routing')) return 'Supervisor';
+  return null;
+}
+
+function updateRuntimeAgent(agents: RuntimeAgent[], event: SseEvent): RuntimeAgent[] {
+  if (event.type === 'status' && event.processing) {
+    return agents.map((agent) =>
+      agent.name === 'Supervisor'
+        ? { ...agent, status: 'searching', text: 'Yeni araştırma isteği alındı, yönlendirme hazırlanıyor.', progress: 35 }
+        : { ...agent, status: 'queued', progress: Math.min(agent.progress, 10) }
+    );
+  }
+
+  if (event.type === 'response') {
+    return agents.map((agent) => ({ ...agent, status: 'completed', progress: 100 }));
+  }
+
+  if (event.type === 'error') {
+    return agents.map((agent) =>
+      agent.status === 'searching' || agent.status === 'analyzing' || agent.status === 'reviewing'
+        ? { ...agent, status: 'failed', text: event.message ?? 'API hata olayı alındı.' }
+        : agent
+    );
+  }
+
+  if (event.type === 'detail' && event.toolName) {
+    const target = inferAgentName(event.toolName) ?? 'Supervisor';
+    return agents.map((agent) =>
+      agent.name === target
+        ? {
+            ...agent,
+            status: 'analyzing',
+            text: `${event.toolName} aracı çalıştırıldı.`,
+            tool: event.toolName ?? agent.tool,
+            progress: Math.max(agent.progress, 65),
+          }
+        : agent
+    );
+  }
+
+  if (event.type !== 'progress' || !event.msg) return agents;
+
+  const target = inferAgentName(event.msg) ?? 'Supervisor';
+  return agents.map((agent) =>
+    agent.name === target
+      ? {
+          ...agent,
+          status: target === 'Strategy Agent' ? 'reviewing' : 'searching',
+          text: event.msg ?? agent.text,
+          progress: Math.min(Math.max(agent.progress + 18, 35), 85),
+        }
+      : agent
+  );
+}
+
+function normalizeHistoryMessages(messages?: ChatMessage[]): ChatMessage[] {
+  return (messages ?? [])
+    .filter((message) => message.role === 'user' || message.role === 'assistant')
+    .map((message) => ({
+      role: message.role,
+      content: message.content,
+      timestamp: message.timestamp,
+    }));
+}
+
+function titleFromContent(content: string, fallback: string): string {
+  const heading = content.match(/^#{1,3}\s+(.+)$/m)?.[1]?.trim();
+  if (heading) return heading.slice(0, 80);
+  const firstLine = content.split('\n').find((line) => line.trim())?.trim();
+  return (firstLine || fallback).slice(0, 80);
+}
+
+function reportsFromHistory(messages?: ChatMessage[]): ReportRecord[] {
+  const reportMessages = (messages ?? []).filter(
+    (message) => message.role === 'assistant' && message.kind === 'report' && message.content?.trim()
+  );
+
+  return reportMessages.map((message, index) => ({
+    ...reportHistory[index % reportHistory.length],
+    id: `api-report-${index}`,
+    title: titleFromContent(message.content, `API Raporu ${index + 1}`),
+    status: 'API sonucu',
+    score: reportHistory[index % reportHistory.length].score,
+    date: message.timestamp ?? new Date().toLocaleDateString('tr-TR'),
+    summary: message.content.slice(0, 420),
+    apiContent: message.content,
+    sourceContent: message.content,
+  }));
+}
+
+function reportFromResponse(message: ChatMessage, existingCount: number): ReportRecord {
+  const template = reportHistory[existingCount % reportHistory.length];
+  return {
+    ...template,
+    id: `local-report-${Date.now()}`,
+    title: titleFromContent(message.content, `Analiz Raporu ${existingCount + 1}`),
+    status: 'Oluşturuldu',
+    date: new Date().toLocaleString('tr-TR'),
+    summary: message.content.slice(0, 420),
+    apiContent: message.content,
+    sourceContent: message.content,
+  };
+}
+
+function buildGraphNodes(data?: GraphData) {
+  if (!data) return graphNodes;
+  if (!data.nodes?.length) return [];
+
+  const radius = 230;
+  return data.nodes.map((node, index) => {
+    const angle = (index / Math.max(data.nodes.length, 1)) * Math.PI * 2;
+    const palette = [
+      'bg-rose-500 border-rose-600 text-white',
+      'bg-purple-500 border-purple-600 text-white',
+      'bg-emerald-500 border-emerald-600 text-white',
+      'bg-[#0EA5E9] border-sky-600 text-white',
+      'bg-slate-500 border-slate-600 text-white',
+    ];
+    return {
+      id: node.id,
+      label: node.caption || node.label || node.id,
+      icon: CircleDot,
+      colorClass: palette[index % palette.length],
+      x: Math.round(Math.cos(angle) * radius),
+      y: Math.round(Math.sin(angle) * radius),
+      type: node.label || 'Neo4j Node',
+      source: 'OSINT Agent API',
+      url: '-',
+    };
+  });
+}
+
+function buildGraphEdges(data?: GraphData) {
+  if (!data) return graphEdges;
+  if (!data.edges?.length) return [];
+  return data.edges.map((edge) => ({
+    source: String(edge.from ?? edge.source ?? ''),
+    target: String(edge.to ?? edge.target ?? ''),
+    label: String(edge.label ?? edge.caption ?? 'RELATED'),
+  }));
+}
 
 export default function App() {
   const [view, setView] = useState<ViewType>('analysis_workspace');
@@ -168,6 +322,147 @@ export default function App() {
   const [selectedReportId, setSelectedReportId] = useState(reportHistory[0].id);
   const [isGraphOpen, setIsGraphOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
+  const [apiAvailable, setApiAvailable] = useState(false);
+  const [apiNotice, setApiNotice] = useState<string | null>(null);
+  const [health, setHealth] = useState<HealthStatus | null>(null);
+  const [graphStats, setGraphStats] = useState<{ nodes?: number; relationships?: number } | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [runtimeAgents, setRuntimeAgents] = useState<RuntimeAgent[]>(agentFlow);
+  const [liveEvents, setLiveEvents] = useState<string[]>([]);
+  const [toolDetails, setToolDetails] = useState<ToolDetail[]>([]);
+  const [telemetry, setTelemetry] = useState<Record<string, unknown> | null>(null);
+  const [processing, setProcessing] = useState(false);
+  const [graphData, setGraphData] = useState<GraphData | null>(null);
+  const [reports, setReports] = useState<ReportRecord[]>(reportHistory);
+
+  const createReportFromLatestResponse = useCallback(() => {
+    const latestResponse = [...chatMessages].reverse().find((message) => message.role === 'assistant' && message.content?.trim());
+    if (!latestResponse) {
+      setApiNotice('Rapor oluÅŸturmak iÃ§in Ã¶nce tamamlanmÄ±ÅŸ bir analiz cevabÄ± gerekiyor.');
+      return;
+    }
+
+    setReports((prev) => {
+      if (prev.some((report) => report.sourceContent === latestResponse.content)) return prev;
+      const nextReport = reportFromResponse(latestResponse, prev.length);
+      setSelectedReportId(nextReport.id);
+      return [nextReport, ...prev.filter((report) => !report.id.startsWith('demo-'))];
+    });
+    setIsReportOpen(true);
+    setView('report');
+  }, [chatMessages]);
+
+  const refreshGraph = useCallback(async () => {
+    try {
+      const data = await osintApi.graphSession();
+      setGraphData(data);
+    } catch {
+      setGraphData(null);
+    }
+  }, []);
+
+  const refreshHistory = useCallback(async () => {
+    try {
+      const history = await osintApi.history();
+      const messages = normalizeHistoryMessages(history.messages);
+      if (messages.length) setChatMessages(messages);
+      const nextReports = reportsFromHistory(messages);
+      setReports((currentReports) => {
+        const localReports = currentReports.filter((report) => report.id.startsWith('local-report-'));
+        const mergedReports = [...localReports, ...nextReports];
+        return mergedReports.length ? mergedReports : [];
+      });
+      setSelectedReportId((current) => (nextReports.some((report) => report.id === current) ? current : current));
+    } catch {
+      setReports(reportHistory);
+    }
+  }, []);
+
+  const handleSseEvent = useCallback(
+    (event: SseEvent) => {
+      if (event.type === 'init') {
+        setApiAvailable(true);
+        setProcessing(Boolean(event.processing));
+        if (event.telemetry) setTelemetry(event.telemetry);
+        event.replayEvents?.forEach(handleSseEvent);
+        return;
+      }
+
+      if (event.type === 'user_message' && event.content) {
+        setChatMessages((prev) => {
+          const lastMessage = prev.at(-1);
+          if (lastMessage?.role === 'user' && lastMessage.content === event.content) {
+            return prev;
+          }
+          return [...prev, { role: 'user', content: event.content ?? '', timestamp: event.ts }];
+        });
+      }
+
+      if (event.type === 'status') {
+        setProcessing(Boolean(event.processing));
+        setRuntimeAgents((prev) => updateRuntimeAgent(prev, event));
+        if (!event.processing) {
+          void refreshHistory();
+        }
+      }
+
+      if (event.type === 'progress' && event.msg) {
+        setLiveEvents((prev) => [...prev.slice(-7), event.msg ?? '']);
+        setRuntimeAgents((prev) => updateRuntimeAgent(prev, event));
+      }
+
+      if (event.type === 'detail' && event.toolName) {
+        setToolDetails((prev) => [
+          ...prev.slice(-7),
+          { toolName: event.toolName ?? 'tool', toolCallId: event.toolCallId, output: event.output ?? '' },
+        ]);
+        setRuntimeAgents((prev) => updateRuntimeAgent(prev, event));
+      }
+
+      if (event.type === 'telemetry') {
+        setTelemetry(event.summary ?? event.telemetry ?? null);
+      }
+
+      if (event.type === 'response' && event.content) {
+        setChatMessages((prev) => [...prev, { role: 'assistant', content: event.content ?? '', kind: 'analysis_response' }]);
+        setRuntimeAgents((prev) => updateRuntimeAgent(prev, event));
+      }
+
+      if (event.type === 'error') {
+        setApiNotice(event.message ?? 'API hata olayı alındı.');
+        setRuntimeAgents((prev) => updateRuntimeAgent(prev, event));
+      }
+
+      if (event.type === 'session_graph_dirty') {
+        void refreshGraph();
+      }
+    },
+    [refreshGraph, refreshHistory]
+  );
+
+  const sse = useOsintEvents({ enabled: true, onEvent: handleSseEvent });
+
+  useEffect(() => {
+    async function loadApiState() {
+      try {
+        const [nextHealth, nextGraphStats] = await Promise.all([
+          osintApi.health(),
+          osintApi.graphStats().catch(() => null),
+        ]);
+        setHealth(nextHealth);
+        setGraphStats(nextGraphStats);
+        setApiAvailable(true);
+        setApiNotice(null);
+        await Promise.all([refreshHistory(), refreshGraph()]);
+      } catch (error) {
+        setApiAvailable(false);
+        setApiNotice(error instanceof Error ? error.message : 'API bağlantısı yok, demo veri gösteriliyor.');
+        setReports(reportHistory);
+      }
+    }
+
+    void loadApiState();
+  }, [refreshGraph, refreshHistory]);
 
   return (
     <div className="flex h-dvh w-full overflow-hidden bg-[#EEF6FF] text-slate-950 print:h-auto print:overflow-visible print:bg-white print:block">
@@ -181,6 +476,11 @@ export default function App() {
           {view === 'dashboard' && (
             <Dashboard
               onViewChange={setView}
+              apiAvailable={apiAvailable}
+              apiNotice={apiNotice}
+              health={health}
+              graphStats={graphStats}
+              reports={reports}
               onSelectReport={(id) => {
                 setSelectedReportId(id);
                 setIsReportOpen(true);
@@ -189,11 +489,43 @@ export default function App() {
             />
           )}
           {view === 'analysis_workspace' && (
-            <AnalysisWorkspace query={query} setQuery={setQuery} onViewChange={setView} />
+            <AnalysisWorkspace
+              query={query}
+              setQuery={setQuery}
+              messages={chatMessages}
+              processing={processing}
+              apiAvailable={apiAvailable}
+              apiNotice={apiNotice ?? sse.error}
+              sseConnected={sse.connected}
+              runtimeAgents={runtimeAgents}
+              liveEvents={liveEvents}
+              toolDetails={toolDetails}
+              telemetry={telemetry}
+              onSendMessage={async (message) => {
+                setChatMessages((prev) => [...prev, { role: 'user', content: message }]);
+                setRuntimeAgents(agentFlow.map((agent) => ({ ...agent, status: 'queued', progress: 5 })));
+                setLiveEvents([]);
+                setToolDetails([]);
+                setProcessing(true);
+                setApiNotice(null);
+                try {
+                  await osintApi.chat(message);
+                  setApiAvailable(true);
+                } catch (error) {
+                  setApiAvailable(false);
+                  setProcessing(false);
+                  setApiNotice(error instanceof Error ? error.message : 'API bağlantısı yok, demo veri gösteriliyor.');
+                }
+              }}
+              onCreateReport={createReportFromLatestResponse}
+              onViewChange={setView}
+            />
           )}
           {view === 'neo4j_graph' && (
             <Neo4jGraph
               selectedReportId={selectedReportId}
+              reports={reports}
+              graphData={graphData}
               onSelectReport={setSelectedReportId}
               isGraphOpen={isGraphOpen}
               onOpenGraph={() => setIsGraphOpen(true)}
@@ -204,6 +536,7 @@ export default function App() {
           {view === 'report' && (
             <Report
               selectedReportId={selectedReportId}
+              reports={reports}
               onSelectReport={setSelectedReportId}
               isReportOpen={isReportOpen}
               onOpenReport={() => setIsReportOpen(true)}
@@ -261,19 +594,34 @@ function getStatusBadge(status: string) {
 function Dashboard({
   onViewChange,
   onSelectReport,
+  apiAvailable,
+  apiNotice,
+  health,
+  graphStats,
+  reports,
 }: {
   onViewChange: (view: ViewType) => void;
   onSelectReport: (reportId: string) => void;
+  apiAvailable: boolean;
+  apiNotice: string | null;
+  health: HealthStatus | null;
+  graphStats: { nodes?: number; relationships?: number } | null;
+  reports: ReportRecord[];
 }) {
   const stats = [
-    ['Toplam analiz', '24', Activity],
-    ['Devam eden', '3', Clock3],
-    ['Ortalama güven', '74%', ShieldCheck],
-    ['Graph düğümü', '186', Database],
+    ['Toplam analiz', String(reports.length || 24), Activity],
+    ['API durumu', apiAvailable ? 'Aktif' : 'Demo', Clock3],
+    ['Tool sayısı', String(health?.toolCount ?? 48), ShieldCheck],
+    ['Graph düğümü', String(graphStats?.nodes ?? 186), Database],
   ];
 
   return (
     <div className="evidence-page-shell h-full overflow-auto p-6">
+      {!apiAvailable && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
+          {apiNotice ?? 'API bağlantısı yok, demo veri gösteriliyor.'}
+        </div>
+      )}
       <div className="grid grid-cols-4 gap-4">
         {stats.map(([label, value, Icon]) => (
           <div key={label as string} className="rounded-lg border border-[#B7D7FF] bg-white/90 p-5 shadow-sm shadow-blue-950/5">
@@ -321,7 +669,13 @@ function Dashboard({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {recentAnalysesTable.map((row, idx) => (
+                {(reports.length ? reports.slice(0, 3).map((report) => ({
+                  title: report.title,
+                  agent: 'OSINT Agent',
+                  score: report.score,
+                  status: report.status.includes('Risk') ? 'Şüpheli' : report.status.includes('Belirsiz') ? 'Şüpheli' : 'Doğru',
+                  reportId: report.id,
+                })) : recentAnalysesTable).map((row, idx) => (
                   <tr
                     key={idx}
                     onClick={() => onSelectReport(row.reportId)}
@@ -355,14 +709,36 @@ function Dashboard({
 function AnalysisWorkspace({
   query,
   setQuery,
+  messages,
+  processing,
+  apiAvailable,
+  apiNotice,
+  sseConnected,
+  runtimeAgents,
+  liveEvents,
+  toolDetails,
+  telemetry,
+  onSendMessage,
+  onCreateReport,
   onViewChange,
 }: {
   query: string;
   setQuery: (value: string) => void;
+  messages: ChatMessage[];
+  processing: boolean;
+  apiAvailable: boolean;
+  apiNotice: string | null;
+  sseConnected: boolean;
+  runtimeAgents: RuntimeAgent[];
+  liveEvents: string[];
+  toolDetails: ToolDetail[];
+  telemetry: Record<string, unknown> | null;
+  onSendMessage: (message: string) => Promise<void>;
+  onCreateReport: () => void;
   onViewChange: (view: ViewType) => void;
 }) {
   const [agentPanelCollapsed, setAgentPanelCollapsed] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [localProcessing, setLocalProcessing] = useState(false);
   const [thoughtStep, setThoughtStep] = useState(0);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkInput, setLinkInput] = useState('');
@@ -370,21 +746,41 @@ function AnalysisWorkspace({
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const imageInputRef = React.useRef<HTMLInputElement>(null);
 
-  const handleSubmit = () => {
+  const isProcessing = processing || localProcessing;
+  const visibleMessages = messages.length
+    ? messages
+    : [
+        { role: 'user' as const, content: query },
+        {
+          role: 'assistant' as const,
+          content:
+            'Analiz başlatıldı. Sorgu karma doğrulama olarak sınıflandırıldı: iddia doğrulama, medya kontrolü ve olası scam sinyalleri birlikte inceleniyor.',
+        },
+        {
+          role: 'assistant' as const,
+          content:
+            'İlk bulgular kampanya alan adının yeni kayıtlı olduğunu ve görselin farklı bir bağlamda daha önce kullanılmış olabileceğini gösteriyor. Strategy Agent bu iki sinyali false-positive riski açısından inceliyor.',
+        },
+      ];
+
+  const handleSubmit = async () => {
     if (!query.trim() || isProcessing) return;
-    setIsProcessing(true);
+    const message = query.trim();
+    setLocalProcessing(true);
     setThoughtStep(1);
     setAgentPanelCollapsed(false);
-    
+
     setTimeout(() => setThoughtStep(2), 1500);
     setTimeout(() => setThoughtStep(3), 3000);
     setTimeout(() => setThoughtStep(4), 4500);
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      await onSendMessage(message);
+    } finally {
+      setLocalProcessing(false);
       setThoughtStep(0);
       setQuery('');
       setAttachments([]);
-    }, 6000);
+    }
   };
 
   const handleAddLink = () => {
@@ -437,7 +833,7 @@ function AnalysisWorkspace({
               <button onClick={() => onViewChange('neo4j_graph')} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold hover:border-[#2563EB] hover:text-[#2563EB]">
                 Grafı Gör
               </button>
-              <button onClick={() => onViewChange('report')} className="rounded-lg bg-[#08111F] px-3 py-2 text-xs font-bold text-white hover:bg-[#2563EB]">
+              <button onClick={onCreateReport} className="rounded-lg bg-[#08111F] px-3 py-2 text-xs font-bold text-white hover:bg-[#2563EB]">
                 Rapor Oluştur
               </button>
             </div>
@@ -445,12 +841,27 @@ function AnalysisWorkspace({
         </div>
 
         <div className="min-h-0 flex-1 overflow-auto p-5">
-          <ChatBubble role="user" text={query} />
-          <ChatBubble
-            role="assistant"
-            text="Analiz başlatıldı. Sorgu karma doğrulama olarak sınıflandırıldı: iddia doğrulama, medya kontrolü ve olası scam sinyalleri birlikte inceleniyor."
-            badges={['Supervisor Onaylı']}
-          />
+          {apiNotice && (
+            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
+              {apiNotice}
+            </div>
+          )}
+          <div className="mb-4 flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
+            <span className={cn('rounded-md px-2 py-1', apiAvailable ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600')}>
+              {apiAvailable ? 'API bağlı' : 'Demo fallback'}
+            </span>
+            <span className={cn('rounded-md px-2 py-1', sseConnected ? 'bg-cyan-50 text-cyan-600' : 'bg-slate-100 text-slate-500')}>
+              SSE {sseConnected ? 'canlı' : 'beklemede'}
+            </span>
+          </div>
+          {visibleMessages.map((message, index) => (
+            <ChatBubble
+              key={`${message.role}-${index}-${message.content.slice(0, 12)}`}
+              role={message.role}
+              text={message.content}
+              badges={message.role === 'assistant' ? ['API / Supervisor'] : undefined}
+            />
+          ))}
           <div className="my-5 rounded-lg border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2 text-sm font-bold text-slate-950">
               <Zap className="h-4 w-4 text-[#2563EB]" />
@@ -462,11 +873,6 @@ function AnalysisWorkspace({
               <Metric label="Kanıt" value="9" />
             </div>
           </div>
-          <ChatBubble
-            role="assistant"
-            text="İlk bulgular kampanya alan adının yeni kayıtlı olduğunu ve görselin farklı bir bağlamda daha önce kullanılmış olabileceğini gösteriyor. Strategy Agent bu iki sinyali false-positive riski açısından inceliyor."
-            badges={['Medya Analizi', 'Strateji Uyarısı']}
-          />
           
           {isProcessing && (
             <div className="mb-4 max-w-[78%] rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
@@ -586,13 +992,31 @@ function AnalysisWorkspace({
         {agentPanelCollapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
       </button>
       <div className="flex shrink-0">
-        <AgentFlowPanel isCollapsed={agentPanelCollapsed} />
+        <AgentFlowPanel
+          isCollapsed={agentPanelCollapsed}
+          agents={runtimeAgents}
+          liveEvents={liveEvents}
+          toolDetails={toolDetails}
+          telemetry={telemetry}
+        />
       </div>
     </div>
   );
 }
 
-function AgentFlowPanel({ isCollapsed }: { isCollapsed: boolean }) {
+function AgentFlowPanel({
+  isCollapsed,
+  agents,
+  liveEvents,
+  toolDetails,
+  telemetry,
+}: {
+  isCollapsed: boolean;
+  agents: RuntimeAgent[];
+  liveEvents: string[];
+  toolDetails: ToolDetail[];
+  telemetry: Record<string, unknown> | null;
+}) {
   return (
     <aside className={cn(
       "flex shrink-0 flex-col border-l border-[#1E293B] bg-[#08111F] text-white transition-all duration-300 overflow-hidden",
@@ -604,7 +1028,7 @@ function AgentFlowPanel({ isCollapsed }: { isCollapsed: boolean }) {
           <h3 className="mt-1 font-display text-lg font-bold">Arka Plan Akışı</h3>
         </div>
       <div className="relative space-y-4 before:absolute before:left-4 before:top-2 before:h-[calc(100%-20px)] before:w-px before:bg-[#1E293B]">
-        {agentFlow.map((agent) => (
+        {agents.map((agent) => (
           <div key={agent.name} className="relative flex gap-4">
             <div className="z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#22D3EE]/30 bg-[#0F1B2E] text-[#22D3EE]">
               <Bot className="h-4 w-4" />
@@ -623,6 +1047,40 @@ function AgentFlowPanel({ isCollapsed }: { isCollapsed: boolean }) {
           </div>
         ))}
       </div>
+        {(liveEvents.length > 0 || toolDetails.length > 0 || telemetry) && (
+          <div className="mt-5 space-y-3 border-t border-[#1E293B] pt-4">
+            {liveEvents.length > 0 && (
+              <div>
+                <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#22D3EE]">Canlı olay akışı</div>
+                <div className="space-y-1.5">
+                  {liveEvents.slice(-5).map((event, index) => (
+                    <div key={`${event}-${index}`} className="rounded-md bg-[#0F1B2E] px-2 py-1.5 text-[11px] leading-4 text-slate-300">
+                      {event}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {toolDetails.length > 0 && (
+              <div>
+                <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#22D3EE]">Tool sonuçları</div>
+                <div className="space-y-1.5">
+                  {toolDetails.slice(-4).map((tool, index) => (
+                    <details key={`${tool.toolName}-${index}`} className="rounded-md bg-[#0F1B2E] px-2 py-1.5 text-[11px] text-slate-300">
+                      <summary className="cursor-pointer font-bold text-slate-100">{tool.toolName}</summary>
+                      <pre className="mt-2 max-h-28 overflow-auto whitespace-pre-wrap text-[10px] text-slate-400">{tool.output.slice(0, 800)}</pre>
+                    </details>
+                  ))}
+                </div>
+              </div>
+            )}
+            {telemetry && (
+              <div className="rounded-md bg-[#0F1B2E] px-2 py-1.5 text-[11px] text-slate-300">
+                Telemetri: {JSON.stringify(telemetry)}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </aside>
   );
@@ -630,6 +1088,8 @@ function AgentFlowPanel({ isCollapsed }: { isCollapsed: boolean }) {
 
 function Neo4jGraph({
   selectedReportId,
+  reports,
+  graphData,
   onSelectReport,
   isGraphOpen,
   onOpenGraph,
@@ -637,20 +1097,24 @@ function Neo4jGraph({
   onViewChange,
 }: {
   selectedReportId: string;
+  reports: ReportRecord[];
+  graphData: GraphData | null;
   onSelectReport: (id: string) => void;
   isGraphOpen: boolean;
   onOpenGraph: () => void;
   onCloseGraph: () => void;
   onViewChange: (view: ViewType) => void;
 }) {
-  const selectedReport = reportHistory.find((report) => report.id === selectedReportId) ?? reportHistory[0];
+  const selectedReport = reports.find((report) => report.id === selectedReportId) ?? reports[0] ?? reportHistory[0];
+  const renderedNodes = useMemo(() => buildGraphNodes(graphData ?? undefined), [graphData]);
+  const renderedEdges = useMemo(() => buildGraphEdges(graphData ?? undefined), [graphData]);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
-  const selectedNode = graphNodes.find(n => n.id === selectedNodeId);
+  const selectedNode = renderedNodes.find(n => n.id === selectedNodeId);
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
@@ -682,8 +1146,17 @@ function Neo4jGraph({
             </p>
           </div>
 
+          {reports.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-[#B7D7FF] bg-white/80 p-8 text-center shadow-sm shadow-blue-950/5">
+              <FileText className="mx-auto h-8 w-8 text-[#2563EB]" />
+              <h3 className="mt-4 font-display text-lg font-bold text-[#08111F]">HenÃ¼z oluÅŸturulmuÅŸ rapor yok</h3>
+              <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">
+                API response cevaplarÄ± chat akÄ±ÅŸÄ±nda kalÄ±r. Rapor listesine eklemek iÃ§in Analiz AlanÄ±ndaki Rapor OluÅŸtur butonunu kullan.
+              </p>
+            </div>
+          ) : (
           <div className="grid grid-cols-3 gap-4">
-            {reportHistory.map((report) => (
+            {reports.map((report) => (
               <button
                 key={report.id}
                 onClick={() => {
@@ -706,6 +1179,7 @@ function Neo4jGraph({
               </button>
             ))}
           </div>
+          )}
         </div>
       </div>
     );
@@ -738,14 +1212,25 @@ function Neo4jGraph({
           </div>
         </div>
 
+        {renderedNodes.length === 0 ? (
+          <div className="absolute inset-0 flex items-center justify-center px-6">
+            <div className="max-w-md rounded-xl border border-[#1E293B] bg-[#0F1B2E]/95 p-6 text-center shadow-2xl">
+              <Network className="mx-auto h-8 w-8 text-[#22D3EE]" />
+              <h3 className="mt-4 font-display text-lg font-bold text-white">Bu oturum için graf verisi yok</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                API oturumundan node/edge dönmedi. Yeni analiz ilerledikçe `session_graph_dirty` olayı sonrası graf yeniden çekilecek.
+              </p>
+            </div>
+          </div>
+        ) : (
         <div 
           className="absolute left-1/2 top-1/2 w-0 h-0 transition-transform duration-75 ease-out"
           style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}
         >
           <svg className="absolute overflow-visible -left-[1000px] -top-[1000px] w-[2000px] h-[2000px] pointer-events-none">
-            {graphEdges.map((edge, i) => {
-              const sourceNode = graphNodes.find(n => n.id === edge.source);
-              const targetNode = graphNodes.find(n => n.id === edge.target);
+            {renderedEdges.map((edge, i) => {
+              const sourceNode = renderedNodes.find(n => n.id === edge.source);
+              const targetNode = renderedNodes.find(n => n.id === edge.target);
               if (!sourceNode || !targetNode) return null;
               
               const startX = 1000 + sourceNode.x;
@@ -784,7 +1269,7 @@ function Neo4jGraph({
             })}
           </svg>
           
-          {graphNodes.map((node) => (
+          {renderedNodes.map((node) => (
             <div 
               key={node.id} 
               className={cn(
@@ -813,6 +1298,7 @@ function Neo4jGraph({
             </div>
           ))}
         </div>
+        )}
       </section>
 
       {/* Inspector Panel */}
@@ -848,10 +1334,10 @@ function Neo4jGraph({
               <div className="rounded-md border border-[#1E293B] bg-[#0F1B2E] p-3">
                 <div className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-2">İlişkiler</div>
                 <div className="space-y-1.5">
-                  {graphEdges.filter(e => e.source === selectedNode.id || e.target === selectedNode.id).map((edge, i) => {
+                  {renderedEdges.filter(e => e.source === selectedNode.id || e.target === selectedNode.id).map((edge, i) => {
                     const isSource = edge.source === selectedNode.id;
                     const otherNodeId = isSource ? edge.target : edge.source;
-                    const otherNode = graphNodes.find(n => n.id === otherNodeId);
+                    const otherNode = renderedNodes.find(n => n.id === otherNodeId);
                     return (
                       <div key={i} className="flex items-center justify-between bg-[#08111F] p-1.5 rounded border border-[#1E293B] text-[10px]">
                         <span className="text-slate-400 font-bold">{edge.label}</span>
@@ -901,6 +1387,7 @@ function AccordionItem({ title, icon: Icon, children, defaultOpen = false }: any
 
 function Report({
   selectedReportId,
+  reports,
   onSelectReport,
   isReportOpen,
   onOpenReport,
@@ -908,13 +1395,14 @@ function Report({
   onViewChange,
 }: {
   selectedReportId: string;
+  reports: ReportRecord[];
   onSelectReport: (id: string) => void;
   isReportOpen: boolean;
   onOpenReport: () => void;
   onCloseReport: () => void;
   onViewChange: (view: ViewType) => void;
 }) {
-  const selectedReport = reportHistory.find((report) => report.id === selectedReportId) ?? reportHistory[0];
+  const selectedReport = reports.find((report) => report.id === selectedReportId) ?? reports[0] ?? reportHistory[0];
   const [isCopied, setIsCopied] = useState(false);
 
   const handleShare = async () => {
@@ -947,8 +1435,17 @@ function Report({
             </p>
           </div>
 
+          {reports.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-[#B7D7FF] bg-white/80 p-8 text-center shadow-sm shadow-blue-950/5">
+              <FileText className="mx-auto h-8 w-8 text-[#2563EB]" />
+              <h3 className="mt-4 font-display text-lg font-bold text-[#08111F]">HenÃ¼z oluÅŸturulmuÅŸ rapor yok</h3>
+              <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">
+                Analiz cevaplarÄ± otomatik rapora dÃ¶nÃ¼ÅŸmez. Son analiz cevabÄ±nÄ± raporlaÅŸtÄ±rmak iÃ§in Analiz AlanÄ±ndaki Rapor OluÅŸtur butonunu kullan.
+              </p>
+            </div>
+          ) : (
           <div className="grid grid-cols-3 gap-4">
-            {reportHistory.map((report) => (
+            {reports.map((report) => (
               <button
                 key={report.id}
                 onClick={() => {
@@ -982,6 +1479,7 @@ function Report({
               </button>
             ))}
           </div>
+          )}
         </div>
       </div>
     );
@@ -1078,10 +1576,16 @@ function Report({
 
           {/* Accordion Sections */}
           <AccordionItem title="Yönetici Özeti (Supervisor Synthesis)" icon={Activity} defaultOpen>
+            {selectedReport.apiContent ? (
+              <div className="whitespace-pre-wrap rounded-lg border border-blue-100 bg-blue-50/40 p-4 font-sans text-sm leading-7 text-slate-800">
+                {selectedReport.apiContent}
+              </div>
+            ) : (
             <p className="text-sm leading-7 text-slate-800">
               {selectedReport.summary}
               {' '}İstihbarat skoru <strong className="text-slate-900">{selectedReport.score}%</strong> olarak hesaplanmış ve <strong className="text-slate-900">"{selectedReport.status}"</strong> risk durumu atanmıştır.
             </p>
+            )}
           </AccordionItem>
 
           <AccordionItem title="Akademik İnceleme Bulguları" icon={FileText}>
